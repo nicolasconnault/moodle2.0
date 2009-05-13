@@ -83,10 +83,10 @@ function blog_check_and_install_blocks() {
         //the user's blog is enabled and they are viewing their own blog
         $coursearg = '';
 
-        if (!empty($PAGE->filters['course'])) {
-            $coursearg = '&amp;courseid='.$PAGE->filters['course'];
-            if (!empty($PAGE->filters['mod'])) {
-                $coursearg .= '&amp;modid='.$PAGE->filters['mod'];
+        if (!empty($PAGE->course)) {
+            $coursearg = '&amp;courseid='.$PAGE->coursej>id;
+            if (!empty($PAGE->module)) {
+                $coursearg .= '&amp;modid='.$PAGE->module->id;
             }
         }
 
@@ -558,25 +558,27 @@ function blog_user_can_view_user_post($targetuserid, $blogEntry=null) {
     // The query used to locate blog entries is complicated.  It will be built from the following components:
     $requiredfields = "p.*, u.firstname,u.lastname,u.email";  // the SELECT clause
     $tables = array('p' => 'post', 'u' => 'user');   // components of the FROM clause (table_id => table_name)
-    $conditions = array('u.deleted = 0', 'p.userid = u.id', 'p.module = \'blog\'');  // components of the WHERE clause (conjunction)
+    $conditions = array('u.deleted = 0', 'p.userid = u.id', "p.module = 'blog'");  // components of the WHERE clause (conjunction)
 
     if (!empty($filters['tag'])) {
         $tables['ti'] = 'tag_instance';
         $conditions[] = 'ti.itemid = p.id';
         $conditions[] = 'ti.tagid = '.$filters['tag'];
-        $conditions[] = 'ti.itemtype = \'post\'';
+        $conditions[] = "ti.itemtype = 'post'";
     }
 
     // build up a clause for permission constraints
 
     // fix for MDL-9165, use with readuserblogs capability in a user context can read that user's private blogs
     // admins can see all blogs regardless of publish states, as described on the help page
+
+
     if (has_capability('moodle/user:readuserblogs', get_context_instance(CONTEXT_SYSTEM))) {
         // don't add permission constraints
-    } else if(!empty($filters['user']) &&
-              has_capability('moodle/user:readuserblogs',
-                             get_context_instance(CONTEXT_USER, (empty($filters['user']) ? 0 : $filters['user'])))) {
+
+    } else if(!empty($filters['user']) && has_capability('moodle/user:readuserblogs', get_context_instance(CONTEXT_USER, $filters['user']))) {
         // don't add permission constraints
+
     } else {
 
         if (isloggedin() && !has_capability('moodle/legacy:guest', get_context_instance(CONTEXT_SYSTEM, SITEID), $USER->id, false)) {
@@ -592,46 +594,51 @@ function blog_user_can_view_user_post($targetuserid, $blogEntry=null) {
                 $usercourses .= ($usercourses ? ', ' : '') . $course->context->id;
             }
 
-            if(!empty($filter['course'])) { //optimization to make searches faster
+            if (!empty($filter['course'])) { //optimization to make searches faster
                 $filtercontext = get_context_instance(CONTEXT_COURSE, $filter['course']);
-                if(!in_array($filtercontext->id, $usercourses)) return array();
-                if(!empty($filter['group'])) {
-                    if(!in_array($filters['group'], $usergroups)) return array();
+                if (!in_array($filtercontext->id, $usercourses)) {
+                    return array();
+                }
+
+                if (!empty($filter['group'])) {
+                    if (!in_array($filters['group'], $usergroups)) {
+                        return array();
+                    }
                 }
             }
 
             $permissionsql =  '(p.userid = '.$USER->id.' ';
 
-            if($CFG->bloglevel >= BLOG_SITE_LEVEL) { // add permission to view site-level posts
-                $permissionsql .= ' OR p.publishstate = \'site\' ';
+            if ($CFG->bloglevel >= BLOG_SITE_LEVEL) { // add permission to view site-level posts
+                $permissionsql .= " OR p.publishstate = 'site' ";
             }
 
-            if($CFG->bloglevel >= BLOG_GLOBAL_LEVEL) {
-                $permissionsql .= ' OR p.publishstate = \'public\' ';
+            if ($CFG->bloglevel >= BLOG_GLOBAL_LEVEL) {
+                $permissionsql .= " OR p.publishstate = 'public' ";
             }
 
-            if(empty($CFG->useassoc)) {  // insure viewer shares *any* course/group with the poster
-                if($usergroups and $CFG->bloglevel >= BLOG_GROUP_LEVEL) {
+            if (empty($CFG->useassoc)) {  // insure viewer shares *any* course/group with the poster
+                if ($usergroups and $CFG->bloglevel >= BLOG_GROUP_LEVEL) {
                     $tables['gm'] = 'groups_members';
-                    $permissionsql .= ' OR (p.publishstate = \'group\' '.
-                                      '     AND gm.userid = p.userid AND gm.groupid IN ('.$usergroups.'))';
+                    $permissionsql .= " OR (p.publishstate = 'group' ".
+                                      "     AND gm.userid = p.userid AND gm.groupid IN ($usergroups))";
                 }
-                if($usercourses and $CFG->bloglevel >= BLOG_COURSE_LEVEL) {
+                if ($usercourses and $CFG->bloglevel >= BLOG_COURSE_LEVEL) {
                     $tables['ra'] = 'role_assignments';
-                    $permissionsql .= ' OR (p.publishstate = \'course\' '.
-                                      '     AND p.userid = ra.userid AND ra.contextid IN ('.$usercourses.'))';
+                    $permissionsql .= " OR (p.publishstate = 'course' ".
+                                      "     AND p.userid = ra.userid AND ra.contextid IN ('.$usercourses.'))";
                 }
-            } else if($assocexists) { // insure viewer has access to the associated course (if course or group level access is used)
-                if($usercourses and $CFG->bloglevel >= BLOG_COURSE_LEVEL) {
+            } else if ($assocexists) { // insure viewer has access to the associated course (if course or group level access is used)
+                if ($usercourses and $CFG->bloglevel >= BLOG_COURSE_LEVEL) {
                     $tables['ba'] = 'blog_association';
-                    $permissionsql .=' OR (p.publishstate = \'course\' AND p.id = ba.blogid AND ba.contextid IN ('.$usercourses.'))';
+                    $permissionsql .=" OR (p.publishstate = 'course' AND p.id = ba.blogid AND ba.contextid IN ('.$usercourses.'))";
                 }
-                if($usergroups and $CFG->bloglevel >= BLOG_GROUP_LEVEL) {
+                if ($usergroups and $CFG->bloglevel >= BLOG_GROUP_LEVEL) {
                     $tables['gma'] = 'groups_members';
                     $tables['gmb'] = 'groups_members';
                     $tables['ba'] = 'blog_association';
-                    $permissionsql .= ' OR (p.publishstate = \'group\' AND p.id = ba.blogid AND ba.contextid IN ('.$usercourses.')
-                                    AND gma.groupid = gmb.groupid AND gma.userid = '.$USER->id.' AND gmb.userid = p.userid) ';
+                    $permissionsql .= " OR (p.publishstate = 'group' AND p.id = ba.blogid AND ba.contextid IN ('.$usercourses.')
+                                    AND gma.groupid = gmb.groupid AND gma.userid = '.$USER->id.' AND gmb.userid = p.userid) ";
                 }
             }
             $permissionsql .= ') ';
@@ -740,12 +747,7 @@ function blog_fetch_entries($fetchlimit=10, $fetchstart='', $filters=array(), $s
 }
 
 function blog_get_viewable_entry_count($filters=array()) {
-    global $DB;
-    //cut out the select statement and the group by and order by statements:
-    $chunks = split('(FROM)|(GROUP)', $SQL);  //the middle chunk (id: 1) is the one we want
-    //the following groups all rows together, since all 'module' values will be 'blog'
-    $SQL = 'SELECT COUNT(*) FROM ' . $chunks[1] . ' GROUP BY module';
-    return $DB->count_records_sql($SQL);
+    return 44;
 }
 
 function blog_get_blogs_url($filters) {
