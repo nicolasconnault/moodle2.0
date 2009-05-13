@@ -765,7 +765,12 @@ function blog_fetch_entries($fetchlimit=10, $fetchstart='', $filters=array(), $s
 }
 
 function blog_get_viewable_entry_count($filters=array()) {
-    return 44;
+    global $DB;
+    //cut out the select statement and the group by and order by statements:
+    $chunks = split('(FROM)|(GROUP)', $SQL);  //the middle chunk (id: 1) is the one we want
+    //the following groups all rows together, since all 'module' values will be 'blog'
+    $SQL = 'SELECT COUNT(*) FROM ' . $chunks[1] . ' GROUP BY module';
+    return $DB->count_records_sql($SQL);
 }
 
 function blog_get_blogs_url($filters) {

@@ -86,6 +86,26 @@ if (!empty($modid)) { //mod
     $filterselect = $cm->course;
 }
 
+if(!empty($groupid)) {
+    $cm = $DB->get_record('course_modules', array('id' => $modid));
+    $cm->modname = $DB->get_field('modules', 'name', array('id' => $cm->module));
+    $cm->name = $DB->get_field($cm->modname, 'name', array('id' => $cm->instance));
+
+    //tabs compatibility
+    $filtertype = 'course';
+    $filterselect = $cm->course;
+}
+
+if (!empty($modid)) { //mod
+    $cm = $DB->get_record('course_modules', array('id' => $modid));
+    $cm->modname = $DB->get_field('modules', 'name', array('id' => $cm->module));
+    $cm->name = $DB->get_field($cm->modname, 'name', array('id' => $cm->instance));
+
+    //tabs compatibility
+    $filtertype = 'course';
+    $filterselect = $cm->course;
+}
+
 if (!empty($groupid)) {
     if ($thisgroup = groups_get_group($groupid, false)) { //TODO:
         $navlinks[] = array('name' => $thisgroup->name,
