@@ -149,7 +149,7 @@ class block_blog_tags extends block_base {
                     break;
                 }
 
-                $link = $CFG->wwwroot.'/blog/index.php?filtertype='.$filtertype.'&amp;filterselect='.$filterselect.'&amp;tagid='.$tag->id;
+                $link = blog_get_blogs_url(array($filtertype => $filterselect, 'tag'=>$tag->id));
                 $this->content->text .= '<li><a href="'.$link.'" '.
                                         'class="'.$tag->class.'" '.
                                         'title="'.get_string('numberofentries','blog',$tag->ct).'">'.

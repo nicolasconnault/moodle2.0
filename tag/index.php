@@ -118,7 +118,7 @@ if ($courses = coursetag_get_tagged_courses($tag->id)) {
 if (has_capability('moodle/blog:view', $systemcontext)) {  // You have to see blogs obviously
 
     $count = 10;
-    if ($blogs = blog_fetch_entries('', $count, 0, 'site', '', $tag->id)) {
+    if ($blogs = blog_fetch_entries($count, 0, array('tag'=>$tag->id))) {
 
         print_box_start('generalbox', 'tag-blogs');
         $heading = get_string('relatedblogs', 'tag', $tagname). ' ' . get_string('taggedwith', 'tag', $tagname);
@@ -145,7 +145,7 @@ if (has_capability('moodle/blog:view', $systemcontext)) {  // You have to see bl
         }
         echo '</ul>';
 
-        echo '<p class="moreblogs"><a href="'.$CFG->wwwroot.'/blog/index.php?filtertype=site&amp;filterselect=0&amp;tagid='.$tag->id.'">'.get_string('seeallblogs', 'tag', $tagname).'</a></p>';
+        echo '<p class="moreblogs"><a href="'.blog_get_blogs_url(array('tag'=>$tag->id)).'">'.get_string('seeallblogs', 'tag', $tagname).'</a></p>';
 
         print_box_end();
     }
