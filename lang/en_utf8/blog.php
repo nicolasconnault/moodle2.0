@@ -67,5 +67,20 @@ $string['viewmyentries'] = 'View my entries';
 $string['viewsiteentries'] = 'View site entries';
 $string['wrongpostid'] = 'Wrong blog post id';
 $string['worldblogs'] = 'The world can read entries set to be world-accessible';
+$string['associations'] = 'Associations';
+$string['publishtocourse'] = 'Users sharing a course with you';
+$string['publishtogroup'] = 'Users sharing a group with you';
+$string['publishtocourseassoc'] = 'Members of the associated course';
+$string['publishtogroupassoc'] = 'Your group members in the associated course';
+$string['associationunviewable'] = 'This entry cannot be viewed by others until a course is associated with it or the \'Publish To\' field is changed';
+$string['mustassociatecourse'] = 'If you are publishing to course or group members, you must associate a course with this entry';
+$string['viewuserentries'] = 'View user entries';
+$string['viewmodentries'] = 'View module entries';
+$string['viewgroupentries'] = 'View group entries';
+$string['viewcourseblogs'] = 'View entries for course...';
+$string['viewmodblogs'] = 'View entries for module...';
+$string['viewgroupblogs'] = 'View entries for group...';
+$string['viewblogsfor'] = 'View all entries for...';
+$string['filterblogsby'] = 'Filter entries by...';
 
 ?>

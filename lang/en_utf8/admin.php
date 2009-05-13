@@ -901,6 +901,8 @@ $string['webservicesystemsettings'] = 'common settings';
 $string['webserviceusersettings'] = 'Web service users settings';
 $string['xmlrpcrecommended'] = 'Installing the optional xmlrpc extension is useful for Moodle Networking functionality.';
 $string['xmlstrictheaders'] = 'XML strict headers';
+$string['useassoc'] = 'Enable associations';
+$string['configuseassoc'] = 'Should users be able to organize their blog by associating entries with courses and course modules?';
 $string['ziprequired'] = 'The Zip PHP extension is now required by Moodle, info-ZIP binaries or PclZip library are not used anymore.';
 
 ?>
