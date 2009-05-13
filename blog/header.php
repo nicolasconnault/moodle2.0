@@ -39,45 +39,10 @@ $pageclass = 'page_blog';
 // of the class which will be handling its operations.
 page_map_class($pagetype, $pageclass);
 
-// Now, create our page object.
-if (empty($USER->id)) {
-    $PAGE = page_create_object($pagetype);
-} else {
-    $PAGE = page_create_object($pagetype, $USER->id);
-}
-$PAGE->set_course($course);
-$PAGE->filtertype   = $filtertype;
-$PAGE->filterselect = $filterselect;
-$PAGE->tagid        = $tagid;
-$PAGE->filters      = $filters;
-
-$array = array();
-if (!empty($course->id)) {
-    $array['courseid'] = $course->id;
-}
-if (!empty($filtertype)) {
-    $array['filtertype'] = $filtertype;
-}
-if (!empty($filterselect)) {
-    $array['filterselect'] = $filterselect;
-}
-if (!empty($tagid)) {
-    $array['tagid'] = $tagid;
-}
-$PAGE->set_url('blog/index.php', $array);
-$PAGE->set_blocks_editing_capability('moodle/blog:create');
-$PAGE->init_full(); //init the BlogInfo object and the courserecord object
-
 $editing = false;
 if ($PAGE->user_allowed_editing()) {
     $editing = $PAGE->user_is_editing();
 }
-
-// Calculate the preferred width for left, right and center (both center positions will use the same)
-$preferredwidthleft  = bounded_number(BLOCK_L_MIN_WIDTH, blocks_preferred_width($pageblocks[BLOCK_POS_LEFT]),
-                                        BLOCK_L_MAX_WIDTH);
-$preferredwidthright = bounded_number(BLOCK_R_MIN_WIDTH, blocks_preferred_width($pageblocks[BLOCK_POS_RIGHT]),
-                                        BLOCK_R_MAX_WIDTH);
 
 /// navigations
 /// course blogs - sitefullname -> course fullname -> (?participants->user/group) -> blogs -> (?tag)
@@ -99,7 +64,7 @@ $navlinks = array();
 $filtertype = 'site';
 $filterselect = $USER->id;
 
-if(!empty($courseid)) {
+if (!empty($courseid)) {
     $COURSE = $DB->get_record('course', array('id'=>$courseid));
     if (empty($groupid) and has_capability('moodle/course:viewparticipants', $coursecontext))    {
         $navlinks[] = array('name' => get_string('participants'),
@@ -111,7 +76,7 @@ if(!empty($courseid)) {
     $filterselect = $courseid;
 }
 
-if(!empty($modid)) { //mod
+if (!empty($modid)) { //mod
     $cm = $DB->get_record('course_modules', array('id' => $modid));
     $cm->modname = $DB->get_field('modules', 'name', array('id' => $cm->module));
     $cm->name = $DB->get_field($cm->modname, 'name', array('id' => $cm->instance));
@@ -121,42 +86,45 @@ if(!empty($modid)) { //mod
     $filterselect = $cm->course;
 }
 
-if(!empty($groupid)) {
+if (!empty($groupid)) {
     if ($thisgroup = groups_get_group($groupid, false)) { //TODO:
-                    $navlinks[] = array('name' => $thisgroup->name,
-                                        'link' => "$CFG->wwwroot/user/index.php?id=$course->id&amp;group=$groupid",
-                                        'type' => 'misc');
-            } else {
-                print_error('cannotfindgroup');
-            }
+        $navlinks[] = array('name' => $thisgroup->name,
+                            'link' => "$CFG->wwwroot/user/index.php?id=$course->id&amp;group=$groupid",
+                            'type' => 'misc');
+    } else {
+        print_error('cannotfindgroup');
+    }
 
     //tabs compatibility
     $filtertype = 'group';
     $filterselect = $thisgroup->id;
-            }
+}
 
-if(!empty($userid)) {
+if (!empty($userid)) {
     $user = $DB->get_record('user', array('id'=>$userid));
-                $navlinks[] = array('name' => fullname($user),
-                                    'link' => "$CFG->wwwroot/user/view.php?id=$userid".(empty($courseid)?'':"&amp;course=$courseid"),
-                                    'type' => 'misc');
+    $navlinks[] = array('name' => fullname($user),
+                        'link' => "$CFG->wwwroot/user/view.php?id=$userid".(empty($courseid)?'':"&amp;course=$courseid"),
+                        'type' => 'misc');
 
     //tabs compatibility
     $filtertype = 'user';
     $filterselect = $user->id;
-                }
+}
+
 $navlinks[] = array('name' => $blogstring, 'link' => null, 'type' => 'misc');
 
-if(!empty($tagid)) {
+if (!empty($tagid)) {
     $tagrec = $DB->get_record('tag', array('id'=>$tagid));
-    $navlinks[] = array('name' => $tagrec->name,
-        'link' => "index.php",
-                                        'type' => 'misc');
-                }
-if(isset($cm)) $navigation = build_navigation($navlinks, $cm);
-else $navigation = build_navigation($navlinks);
+    $navlinks[] = array('name' => $tagrec->name, 'link' => "index.php", 'type' => 'misc');
+}
 
-print_header("$COURSE->shortname: $blogstring", $COURSE->fullname, $navigation,'','',true,$PAGE->get_extra_header_string());
+if (isset($cm)) {
+    $navigation = build_navigation($navlinks, $cm);
+} else {
+    $navigation = build_navigation($navlinks);
+}
+
+print_header("$COURSE->shortname: $blogstring", $COURSE->fullname, $navigation,'','',true);
 
 // prints the tabs
 $showroles = !empty($userid);
@@ -165,21 +133,9 @@ $currenttab = 'blogs';
 $user = $USER;
 require_once($CFG->dirroot .'/user/tabs.php');
 
-
-/// Layout the whole page as three big columns.
+/// TODO Layout the whole page as three big columns.
 print '<table border="0" cellpadding="3" cellspacing="0" width="100%" id="layout-table">' . "\n";
 print '<tr valign="top">' . "\n";
-
-/// The left column ...
-if (blocks_have_content($pageblocks, BLOCK_POS_LEFT) || $editing) {
-    print '<td style="vertical-align: top; width: '. $preferredwidthleft .'px;" id="left-column">' . "\n";
-    print '<!-- Begin left side blocks -->' . "\n";
-    print_container_start();
-    blocks_print_group($PAGE, $pageblocks, BLOCK_POS_LEFT);
-    print_container_end();
-    print '<!-- End left side blocks -->' . "\n";
-    print '</td>' . "\n";
-}
 
 /// Start main column
 print '<!-- Begin page content -->' . "\n";
