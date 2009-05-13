@@ -13,8 +13,7 @@ define('PAGE_BLOG_VIEW', 'blog-view');
 class page_blog extends page_base {
 
     var $editing = false;
-    var $filtertype = NULL;
-    var $filterselect = NULL;
+    var $filters = array();
     var $tagid = NULL;
 
     // Do any validation of the officially recognized bits of the data and forward to parent.
@@ -41,6 +40,10 @@ class page_blog extends page_base {
         }
         // I need to determine how best to utilize this function. Most init
         // is already done before we get here in blogFilter and blogInfo
+
+        if(!empty($this->filters['course'])) {
+            $this->courseid = $this->filters['course'];
+        }
 
         if ($this->courseid == 0 || $this->courseid == 1 || !is_numeric($this->courseid) ) {
             $this->courseid = '';

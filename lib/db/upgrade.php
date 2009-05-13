@@ -2137,6 +2137,35 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
         upgrade_main_savepoint($result, 2009051200);
     }
 
+    if ($result && $oldversion < 2009051300) {
+    /// Define table blog_association to be created
+        $table = new xmldb_table('blog_association');
+
+    /// Adding fields to table blog_association
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+        $table->add_field('contextid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+        $table->add_field('blogid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, null);
+    /// Adding keys to table blog_association
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('contextid', XMLDB_KEY_FOREIGN, array('contextid'), 'context', array('id'));
+        $table->add_key('blogid', XMLDB_KEY_FOREIGN, array('blogid'), 'post', array('id'));
+
+        if (!$dbman->table_exists($table)) {
+        /// Launch create table for blog_association
+            $dbman->create_table($table);
+        }
+
+    /// Updating available post states
+        $table = new xmldb_table('post');
+        $field = new xmldb_field('publishstate');
+        $dbman->drop_field($table, $field);
+        $table->add_field('publishstate', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, XMLDB_ENUM,
+                          array('draft', 'public', 'site', 'group', 'course'), 'public');
+
+
+    /// Main savepoint reached
+        upgrade_main_savepoint($result, 2009051300);
+    }
     return $result;
 }
 

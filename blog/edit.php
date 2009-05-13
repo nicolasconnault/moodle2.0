@@ -7,6 +7,7 @@ include_once($CFG->dirroot.'/tag/lib.php');
 $action   = required_param('action', PARAM_ALPHA);
 $id       = optional_param('id', 0, PARAM_INT);
 $confirm  = optional_param('confirm', 0, PARAM_BOOL);
+$modid    = optional_param('modid', 0, PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT); // needed for user tab - does nothing here
 
 require_login($courseid);
@@ -70,7 +71,41 @@ if ($action === 'delete'){
 }
 
 require_once('edit_form.php');
-$blogeditform = new blog_edit_form(null, compact('existing', 'sitecontext'));
+
+if(!empty($existing)) {
+    $assignmentdata = $DB->get_record_sql('SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asub.grade
+                                                   FROM {assignment} a, {assignment_submissions} as asub WHERE
+                                                   a.id = asub.assignment AND userid = '.$USER->id.' AND a.assignmenttype = \'blog\'
+                                                   AND asub.data1 = \''.$existing->id.'\'');
+}
+
+//add associations
+if(!empty($existing)) {
+    if ($blogassociations = $DB->get_records('blog_association', array('blogid' => $existing->id))) {
+        foreach($blogassociations as $assocrec) {
+            $contextrec = $DB->get_record('context', array('id' => $assocrec->contextid));
+            switch($contextrec->contextlevel) {
+                case CONTEXT_COURSE:
+                    $existing->courseassoc = $assocrec->contextid;
+                break;
+                case CONTEXT_MODULE:
+                    $existing->modassoc[] = $assocrec->contextid;
+                break;
+            }
+        }
+    }
+}
+
+if($action == 'add' and $courseid) {  //pre-select the course for associations
+    $context = get_context_instance(CONTEXT_COURSE, $courseid);
+    $existing->courseassoc = $context->id;
+}
+if($action == 'add' and $modid) { //pre-select the mod for associations
+    $context = get_context_instance(CONTEXT_MODULE, $modid);
+    $existing->modassoc = array($context->id);
+}
+
+$blogeditform = new blog_edit_form(null, compact('existing', 'sitecontext', 'assignmentdata'));
 
 if ($blogeditform->is_cancelled()){
     redirect($returnurl);
@@ -101,6 +136,16 @@ switch ($action) {
         $post->publishstate = 'site';
         $strformheading = get_string('addnewentry', 'blog');
         $post->action       = $action;
+
+        if($courseid) {  //pre-select the course for associations
+            $context = get_context_instance(CONTEXT_COURSE, $courseid);
+            $post->courseassoc = $context->id;
+        }
+
+        if($modid) { //pre-select the mod for associations
+            $context = get_context_instance(CONTEXT_MODULE, $modid);
+            $post->modassoc = array($context->id);
+        }
     break;
 
     case 'edit':
@@ -109,11 +154,22 @@ switch ($action) {
         }
         $post->id           = $existing->id;
         $post->subject      = $existing->subject;
+        $post->fakesubject  = $existing->subject;
         $post->summary      = $existing->summary;
+        $post->fakesummary  = $existing->summary;
         $post->publishstate = $existing->publishstate;
         $post->format       = $existing->format;
         $post->tags = tag_get_tags_array('post', $post->id);
         $post->action       = $action;
+
+        if(!empty($existing->courseassoc)) {
+            $post->courseassoc = $existing->courseassoc;
+        }
+
+        if(!empty($existing->modassoc)) {
+            $post->modassoc = $existing->modassoc;
+        }
+
         $strformheading = get_string('updateentrywithid', 'blog');
 
     break;
@@ -147,13 +203,26 @@ die;
 * Delete blog post from database
 */
 function do_delete($post) {
-    global $returnurl, $DB;
+    global $returnurl, $DB, $USER;
+
+    //check to see if it's part of a submitted blog assignment
+    if($blogassignment = $DB->get_record_sql('SELECT a.timedue, a.preventlate, a.emailteachers, asub.grade
+                                          FROM {assignment} a, {assignment_submissions} as asub WHERE
+                                          a.id = asub.assignment AND userid = '.$USER->id.' AND a.assignmenttype = \'blog\'
+                                          AND asub.data1 = \''.$post->id.'\'')) {
+        print_error('cantdeleteblogassignment', 'blog', $returnurl);
+    }
 
     blog_delete_attachments($post);
 
     $status = $DB->delete_records('post', array('id'=>$post->id));
     tag_set('post', $post->id, array());
-    
+
+    blog_delete_old_attachments($post);
+
+    blog_remove_associations_for_post($post->id);
+
+
     add_to_log(SITEID, 'blog', 'delete', 'index.php?userid='. $post->userid, 'deleted blog entry with entry id# '. $post->id);
 
     if (!$status) {
@@ -184,6 +253,10 @@ function do_add($post, $blogeditform) {
         // Update tags.
         tag_set('post', $post->id, $post->tags);
 
+        if (!empty($CFG->useassoc)) {
+            add_associations($post);
+        }
+
         add_to_log(SITEID, 'blog', 'add', 'index.php?userid='.$post->userid.'&postid='.$post->id, $post->subject);
 
     } else {
@@ -199,6 +272,23 @@ function do_add($post, $blogeditform) {
  */
 function do_edit($post, $blogeditform) {
     global $CFG, $USER, $returnurl, $DB;
+
+    //check to see if it is a submitted assignment
+    if ($blogassignment = $DB->get_record_sql('SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asi.grade, asi.id
+                                          FROM {assignment} a, {assignment_submissions} as asi WHERE
+                                          a.id = asi.assignment AND userid = '.$USER->id.' AND a.assignmenttype = \'blog\'
+                                          AND asi.data1 = \''.$post->id.'\'')) {
+
+        //email teachers if necessary
+        if ($blogassignment->emailteachers) {
+            email_teachers($DB->get_record('assignment_submissions', array('id'=>$blogassignment['id'])));
+        }
+
+    } else {  //only update the attachment and associations if it is not a submitted assignment
+        if (!empty($CFG->useassoc)) {
+            add_associations($post);
+        }
+    }
 
     $post->lastmodified = time();
 
@@ -219,6 +309,26 @@ function do_edit($post, $blogeditform) {
 
     } else {
         print_error('deleteposterror', 'blog', $returnurl);
+    }
+}
+
+
+function add_associations($post) {
+    global $DB, $USER;
+
+    $allowaddcourseassoc = true;
+    blog_remove_associations_for_post($post->id);
+
+    if (!empty($post->courseassoc)) {
+        blog_add_association($post->id, $post->courseassoc);
+        $allowaddcourseassoc = false;
+    }
+
+    if (!empty($post->modassoc)) {
+        foreach($post->modassoc as $modid) {
+            blog_add_association($post->id, $modid, $allowaddcourseassoc);
+            $allowaddcourseassoc = false;   //let the course be added the first time
+        }
     }
 }
 

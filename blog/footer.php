@@ -8,7 +8,7 @@ print '<!-- End page content -->'."\n";
 
 // The right column
 if (blocks_have_content($pageblocks, BLOCK_POS_RIGHT) || $editing) {
-    echo '<td style="vertical-align: top; width: '. $preferred_width_right .'px;" id="right-column">';
+    echo '<td style="vertical-align: top; width: '. $preferredwidthright .'px;" id="right-column">';
     echo '<!-- Begin right side blocks -->'."\n";
     print_container_start();
     blocks_print_group($PAGE, $pageblocks, BLOCK_POS_RIGHT);
