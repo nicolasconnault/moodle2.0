@@ -9,17 +9,19 @@
 require_once('../config.php');
 require_once($CFG->dirroot .'/blog/lib.php');
 
-$id           = optional_param('id', 0, PARAM_INT);
-$start        = optional_param('formstart', 0, PARAM_INT);
-$userid       = optional_param('userid', 0, PARAM_INT);
-$postid       = optional_param('postid', 0, PARAM_INT);
-$groupid      = optional_param('groupid', 0, PARAM_INT);
-$modid        = optional_param('modid', 0, PARAM_INT);
+$id           = optional_param('id', null, PARAM_INT);
+$start        = optional_param('formstart', null, PARAM_INT);
+$userid       = optional_param('userid', null, PARAM_INT);
+$postid       = optional_param('postid', null, PARAM_INT);
+$groupid      = optional_param('groupid', null, PARAM_INT);
+$modid        = optional_param('modid', null, PARAM_INT);
 $tag          = optional_param('tag', '', PARAM_NOTAGS);
-$tagid        = optional_param('tagid', 0, PARAM_INT);
+$tagid        = optional_param('tagid', null, PARAM_INT);
 
 $edit         = optional_param('edit', -1, PARAM_BOOL);
 $courseid     = optional_param('courseid', 0, PARAM_INT); // needed for user tabs and course tracking
+
+$PAGE->set_url('blog/index.php', compact('id', 'start', 'userid', 'postid', 'groupid', 'modid', 'tag', 'tagid', 'edit', 'courseid'));
 
 //correct tagid if a text tag is provided as a param
 if(!empty($tag)) {  //text tag parameter takes precedence

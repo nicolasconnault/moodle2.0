@@ -72,7 +72,7 @@ if ($action === 'delete'){
 
 require_once('edit_form.php');
 
-if(!empty($existing)) {
+if (!empty($existing)) {
     $assignmentdata = $DB->get_record_sql('SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asub.grade
                                                    FROM {assignment} a, {assignment_submissions} as asub WHERE
                                                    a.id = asub.assignment AND userid = '.$USER->id.' AND a.assignmenttype = \'blog\'
@@ -80,7 +80,7 @@ if(!empty($existing)) {
 }
 
 //add associations
-if(!empty($existing)) {
+if (!empty($existing)) {
     if ($blogassociations = $DB->get_records('blog_association', array('blogid' => $existing->id))) {
         foreach($blogassociations as $assocrec) {
             $contextrec = $DB->get_record('context', array('id' => $assocrec->contextid));
@@ -96,11 +96,11 @@ if(!empty($existing)) {
     }
 }
 
-if($action == 'add' and $courseid) {  //pre-select the course for associations
+if ($action == 'add' and $courseid) {  //pre-select the course for associations
     $context = get_context_instance(CONTEXT_COURSE, $courseid);
     $existing->courseassoc = $context->id;
 }
-if($action == 'add' and $modid) { //pre-select the mod for associations
+if ($action == 'add' and $modid) { //pre-select the mod for associations
     $context = get_context_instance(CONTEXT_MODULE, $modid);
     $existing->modassoc = array($context->id);
 }
@@ -137,12 +137,12 @@ switch ($action) {
         $strformheading = get_string('addnewentry', 'blog');
         $post->action       = $action;
 
-        if($courseid) {  //pre-select the course for associations
+        if ($courseid) {  //pre-select the course for associations
             $context = get_context_instance(CONTEXT_COURSE, $courseid);
             $post->courseassoc = $context->id;
         }
 
-        if($modid) { //pre-select the mod for associations
+        if ($modid) { //pre-select the mod for associations
             $context = get_context_instance(CONTEXT_MODULE, $modid);
             $post->modassoc = array($context->id);
         }
@@ -162,11 +162,11 @@ switch ($action) {
         $post->tags = tag_get_tags_array('post', $post->id);
         $post->action       = $action;
 
-        if(!empty($existing->courseassoc)) {
+        if (!empty($existing->courseassoc)) {
             $post->courseassoc = $existing->courseassoc;
         }
 
-        if(!empty($existing->modassoc)) {
+        if (!empty($existing->modassoc)) {
             $post->modassoc = $existing->modassoc;
         }
 
@@ -206,7 +206,7 @@ function do_delete($post) {
     global $returnurl, $DB, $USER;
 
     //check to see if it's part of a submitted blog assignment
-    if($blogassignment = $DB->get_record_sql('SELECT a.timedue, a.preventlate, a.emailteachers, asub.grade
+    if ($blogassignment = $DB->get_record_sql('SELECT a.timedue, a.preventlate, a.emailteachers, asub.grade
                                           FROM {assignment} a, {assignment_submissions} as asub WHERE
                                           a.id = asub.assignment AND userid = '.$USER->id.' AND a.assignmenttype = \'blog\'
                                           AND asub.data1 = \''.$post->id.'\'')) {
