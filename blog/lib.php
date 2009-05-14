@@ -182,8 +182,12 @@ function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode
     }
 
     /// Start printing of the blog
+<<<<<<< HEAD:blog/lib.php
     echo '<table cellspacing="0" class="forumpost blogpost blog'
         . ($unassociatedpost ? 'draft' : $template['publishstate']).'" width="100%">';
+=======
+    echo '<table cellspacing="0" class="forumpost blogpost blog'. ($unassociatedpost ? 'draft' : $template['publishstate']).'" width="100%">';
+>>>>>>> MDL-15435 More cleaning of blog/lib.php:blog/lib.php
 
     echo '<tr class="header"><td class="picture left">';
     print_user_picture($user, SITEID, $user->picture);
@@ -258,9 +262,13 @@ function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode
     }
 
     //add associations
+<<<<<<< HEAD:blog/lib.php
     $blog_associations = $DB->get_records('blog_association', array('blogid' => $blog_entry->id));
 
     if (!empty($CFG->useassoc) && $blog_associations) {
+=======
+    if (!empty($CFG->useassoc) && $blog_associations = $DB->get_records('blog_association', array('blogid' => $blog_entry->id))) {
+>>>>>>> MDL-15435 More cleaning of blog/lib.php:blog/lib.php
         echo '<div clas="tags">';
         $assoc_str = '';
 
@@ -450,7 +458,12 @@ function blog_user_can_edit_post($blog_entry) {
         return true; // can edit any blog post
     }
 
+<<<<<<< HEAD:blog/lib.php
     if ($blog_entry->userid == $USER->id and has_capability('moodle/blog:create', $sitecontext)) {
+=======
+    if ($blog_entry->userid == $USER->id
+      and has_capability('moodle/blog:create', $sitecontext)) {
+>>>>>>> MDL-15435 More cleaning of blog/lib.php:blog/lib.php
         return true; // can edit own when having blog:create capability
     }
 
@@ -463,7 +476,11 @@ function blog_user_can_edit_post($blog_entry) {
  * Only blog level is checked here, the capabilities are enforced
  * in blog/index.php
  */
+<<<<<<< HEAD:blog/lib.php
 function blog_user_can_view_user_post($target_userid, $blog_entry=null) {
+=======
+function blog_user_can_view_user_post($targetuserid, $blog_entry=null) {
+>>>>>>> MDL-15435 More cleaning of blog/lib.php:blog/lib.php
     global $CFG, $USER, $DB;
 
     if (empty($CFG->bloglevel)) {
