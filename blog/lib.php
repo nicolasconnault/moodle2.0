@@ -94,7 +94,8 @@ function blog_print_html_formatted_entries($filters) {
         }
 
         $addlink = '<div class="addbloglink">';
-        $addlink .= '<a href="'.$CFG->wwwroot .'/blog/edit.php?action=add'.$coursearg.'">'. get_string('addnewentry', 'blog').'</a>';
+        $addlink .= '<a href="'.$CFG->wwwroot .'/blog/edit.php?action=add'.$coursearg.'">'
+                 . get_string('addnewentry', 'blog').'</a>';
         $addlink .= '</div>';
         echo $addlink;
     }
@@ -181,14 +182,16 @@ function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode
     }
 
     /// Start printing of the blog
-    echo '<table cellspacing="0" class="forumpost blogpost blog'. ($unassociatedpost ? 'draft' : $template['publishstate']).'" width="100%">';
+    echo '<table cellspacing="0" class="forumpost blogpost blog'
+        . ($unassociatedpost ? 'draft' : $template['publishstate']).'" width="100%">';
 
     echo '<tr class="header"><td class="picture left">';
     print_user_picture($user, SITEID, $user->picture);
     echo '</td>';
 
     echo '<td class="topic starter"><div class="subject">'.$template['title'].'</div><div class="author">';
-    $fullname = fullname($user, has_capability('moodle/site:viewfullnames', get_context_instance(CONTEXT_COURSE, $COURSE->id)));
+    $fullname = fullname($user, has_capability('moodle/site:viewfullnames',
+                                               get_context_instance(CONTEXT_COURSE, $COURSE->id)));
     $by = new object();
     $by->name =  '<a href="'.$CFG->wwwroot.'/user/view.php?id='.
                 $user->id.'&amp;course='.$COURSE->id.'">'.$fullname.'</a>';
@@ -216,10 +219,14 @@ function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode
             $blogtype = get_string('publishtonoone', 'blog');
         break;
         case 'course':
-            $blogtype = !empty($CFG->useassoc) ? get_string('publishtocourseassoc', 'blog') : get_string('publishtocourse', 'blog');
+            $blogtype = !empty($CFG->useassoc) ?
+                get_string('publishtocourseassoc', 'blog') :
+                get_string('publishtocourse', 'blog');
         break;
         case 'group':
-            $blogtype = !empty($CFG->useassoc) ? get_string('publishtogroupassoc', 'blog') : get_string('publishtogroup', 'blog');
+            $blogtype = !empty($CFG->useassoc) ?
+                get_string('publishtogroupassoc', 'blog') :
+                get_string('publishtogroup', 'blog');
         break;
         case 'site':
             $blogtype = get_string('publishtosite', 'blog');
@@ -251,7 +258,9 @@ function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode
     }
 
     //add associations
-    if (!empty($CFG->useassoc) && $blog_associations = $DB->get_records('blog_association', array('blogid' => $blog_entry->id))) {
+    $blog_associations = $DB->get_records('blog_association', array('blogid' => $blog_entry->id));
+
+    if (!empty($CFG->useassoc) && $blog_associations) {
         echo '<div clas="tags">';
         $assoc_str = '';
 
@@ -259,10 +268,10 @@ function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode
             $context_rec = $DB->get_record('context', array('id' => $assoc_rec->contextid));
 
             if ($context_rec->contextlevel ==  CONTEXT_COURSE) {
-                    $assoc_str .= '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$context_rec->instanceid.'">';
-                    $assoc_str .= '<img src="'.$CFG->pixpath.'/i/course.gif" border=0  alt="">';
-                    $assoc_str .= $DB->get_field('course', 'shortname', array('id' => $context_rec->instanceid));
-                    $assoc_str .= '</a>';
+                $assoc_str .= '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$context_rec->instanceid.'">';
+                $assoc_str .= '<img src="'.$CFG->pixpath.'/i/course.gif" border=0  alt="">';
+                $assoc_str .= $DB->get_field('course', 'shortname', array('id' => $context_rec->instanceid));
+                $assoc_str .= '</a>';
             }
         }
 
@@ -270,13 +279,13 @@ function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode
             $context_rec = $DB->get_record('context', array('id' => $assoc_rec->contextid));
 
             if ($context_rec->contextlevel ==  CONTEXT_MODULE) {
-                    $modinfo = $DB->get_record('course_modules', array('id' => $context_rec->instanceid));
-                    $modname = $DB->get_field('modules', 'name', array('id' => $modinfo->module));
-                    $assoc_str .= ', ';
-                    $assoc_str .= '<a href="'.$CFG->wwwroot.'/mod/'.$modname.'/view.php?id='.$modinfo->id.'">';
-                    $assoc_str .= '<img src="'.$CFG->wwwroot.'/mod/'.$modname.'/icon.gif" border=0 alt="">';
-                    $assoc_str .= $DB->get_field($modname, 'name', array('id' => $modinfo->instance));
-                    $assoc_str .= '</a>';
+                $modinfo = $DB->get_record('course_modules', array('id' => $context_rec->instanceid));
+                $modname = $DB->get_field('modules', 'name', array('id' => $modinfo->module));
+                $assoc_str .= ', ';
+                $assoc_str .= '<a href="'.$CFG->wwwroot.'/mod/'.$modname.'/view.php?id='.$modinfo->id.'">';
+                $assoc_str .= '<img src="'.$CFG->wwwroot.'/mod/'.$modname.'/icon.gif" border=0 alt="">';
+                $assoc_str .= $DB->get_field($modname, 'name', array('id' => $modinfo->instance));
+                $assoc_str .= '</a>';
             }
         }
         echo get_string('associations', 'blog') . ': '. $assoc_str;
@@ -330,11 +339,11 @@ function blog_delete_attachments($post) {
 }
 
 /**
- * if return=html, then return a html string.
- * if return=text, then return a text-only string.
- * otherwise, print HTML for non-images, and return image HTML
+ * Print blog entry attachments
+ * @param object $blog_entry
+ * @param string $return (html|text|NULL) if null: print HTML for non-images, and return image HTML
  */
-function blog_print_attachments($blogentry, $return=NULL) {
+function blog_print_attachments($blog_entry, $return=NULL) {
     global $CFG;
 
     require_once($CFG->libdir.'/filelib.php');
@@ -342,7 +351,7 @@ function blog_print_attachments($blogentry, $return=NULL) {
     $fs = get_file_storage();
     $browser = get_file_browser();
 
-    $files = $fs->get_area_files(SYSCONTEXTID, 'blog', $blogentry->id);
+    $files = $fs->get_area_files(SYSCONTEXTID, 'blog', $blog_entry->id);
 
     $imagereturn = "";
     $output = "";
@@ -355,12 +364,13 @@ function blog_print_attachments($blogentry, $return=NULL) {
         }
 
         $filename = $file->get_filename();
-        $ffurl    = $browser->encodepath($CFG->wwwroot.'/pluginfile.php', '/'.SYSCONTEXTID.'/blog/'.$blogentry->id.'/'.$filename);
+        $ffurl    = $browser->encodepath($CFG->wwwroot.'/pluginfile.php', '/'
+                  . SYSCONTEXTID.'/blog/'.$blog_entry->id.'/'.$filename);
         $type     = $file->get_mimetype();
         $icon     = mimeinfo_from_type("icon", $type);
         $type     = mimeinfo_from_type("type", $type);
 
-        $image = "<img src=\"$CFG->pixpath/f/$icon\" class=\"icon\" alt=\"\" />";
+        $image = '<img src="'.$CFG->pixpath.'/f/'.$icon.'" class="icon" alt="" />';
 
         if ($return == "html") {
             $output .= "<a href=\"$ffurl\">$image</a> ";
@@ -370,7 +380,8 @@ function blog_print_attachments($blogentry, $return=NULL) {
             $output .= "$strattachment $filename:\n$ffurl\n";
 
         } else {
-            if (in_array($type, array('image/gif', 'image/jpeg', 'image/png'))) {    // Image attachments don't get printed as links
+            // Image attachments don't get printed as links
+            if (in_array($type, array('image/gif', 'image/jpeg', 'image/png'))) {
                 $imagereturn .= "<br /><img src=\"$ffurl\" alt=\"\" />";
             } else {
                 echo "<a href=\"$ffurl\">$image</a> ";
@@ -390,9 +401,8 @@ function blog_print_attachments($blogentry, $return=NULL) {
 /**
  * Use this function to retrieve a list of publish states available for
  * the currently logged in user.
- *
- * @return array This function returns an array ideal for sending to moodles'
- *                choose_from_menu function.
+ * @param int $courseid
+ * @return array This function returns an array ideal for sending to moodle's choose_from_menu function.
  */
 function blog_applicable_publish_states($courseid='') {
     global $CFG;
@@ -428,6 +438,8 @@ function blog_applicable_publish_states($courseid='') {
  * moodle/blog:manageentries.
  *
  * This also applies to deleting of posts.
+ * @param object $blog_entry
+ * @return boolean
  */
 function blog_user_can_edit_post($blog_entry) {
     global $CFG, $USER;
@@ -438,8 +450,7 @@ function blog_user_can_edit_post($blog_entry) {
         return true; // can edit any blog post
     }
 
-    if ($blog_entry->userid == $USER->id
-      and has_capability('moodle/blog:create', $sitecontext)) {
+    if ($blog_entry->userid == $USER->id and has_capability('moodle/blog:create', $sitecontext)) {
         return true; // can edit own when having blog:create capability
     }
 
@@ -452,14 +463,14 @@ function blog_user_can_edit_post($blog_entry) {
  * Only blog level is checked here, the capabilities are enforced
  * in blog/index.php
  */
-function blog_user_can_view_user_post($targetuserid, $blog_entry=null) {
+function blog_user_can_view_user_post($target_userid, $blog_entry=null) {
     global $CFG, $USER, $DB;
 
     if (empty($CFG->bloglevel)) {
         return false; // blog system disabled
     }
 
-    if (!empty($USER->id) and $USER->id == $targetuserid) {
+    if (!empty($USER->id) and $USER->id == $target_userid) {
         return true; // can view own posts in any case
     }
 
@@ -492,7 +503,7 @@ function blog_user_can_view_user_post($targetuserid, $blog_entry=null) {
 
         case BLOG_COURSE_LEVEL:
             $mycourses = array_keys(get_my_courses($USER->id));
-            $usercourses = array_keys(get_my_courses($targetuserid));
+            $usercourses = array_keys(get_my_courses($target_userid));
             $shared = array_intersect($mycourses, $usercourses);
             if (!empty($shared)) {
                 return true;
@@ -502,7 +513,7 @@ function blog_user_can_view_user_post($targetuserid, $blog_entry=null) {
 
         case BLOG_GROUP_LEVEL:
             $mycourses = array_keys(get_my_courses($USER->id));
-            $usercourses = array_keys(get_my_courses($targetuserid));
+            $usercourses = array_keys(get_my_courses($target_userid));
             $shared = array_intersect($mycourses, $usercourses);
             foreach ($shared as $courseid) {
                 $course = $DB->get_record('course', array('id'=>$courseid));
@@ -511,7 +522,7 @@ function blog_user_can_view_user_post($targetuserid, $blog_entry=null) {
                   or groups_get_course_groupmode($course) != SEPARATEGROUPS) {
                     return true;
                 } else {
-                    if ($usergroups = groups_get_all_groups($courseid, $targetuserid)) {
+                    if ($usergroups = groups_get_all_groups($courseid, $target_userid)) {
                         foreach ($usergroups as $usergroup) {
                             if (groups_is_member($usergroup->id)) {
                                 return true;
@@ -525,8 +536,7 @@ function blog_user_can_view_user_post($targetuserid, $blog_entry=null) {
 
         case BLOG_USER_LEVEL:
         default:
-            $personalcontext = get_context_instance(CONTEXT_USER, $targetuserid);
-            return has_capability('moodle/user:readuserblogs', $personalcontext);
+            return has_capability('moodle/user:readuserblogs', get_context_instance(CONTEXT_USER, $target_userid));
         break;
 
     }
