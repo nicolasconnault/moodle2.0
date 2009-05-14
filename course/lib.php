@@ -1,4 +1,4 @@
-<?php  // $Id: lib.php,v 1.655 2009/05/08 14:24:56 mjollnir_ Exp $
+<?php  // $Id: lib.php,v 1.656 2009/05/14 06:04:35 fmarier Exp $
    // Library of useful functions
 
 require_once($CFG->libdir.'/completionlib.php');
@@ -2067,7 +2067,12 @@ function print_category_info($category, $depth, $showcourses = false) {
 
     $catlinkcss = $category->visible ? '' : ' class="dimmed" ';
 
-    $coursecount = $DB->count_records('course') <= FRONTPAGECOURSELIMIT;
+    static $coursecount = null;
+    if (null === $coursecount) {
+        // only need to check this once
+        $coursecount = $DB->count_records('course') <= FRONTPAGECOURSELIMIT;
+    }
+
     if ($showcourses and $coursecount) {
         $catimage = '<img src="'.$CFG->pixpath.'/i/course.gif" alt="" />';
     } else {

@@ -1,4 +1,4 @@
-<?php //$Id: editadvanced_form.php,v 1.27 2009/03/07 20:59:26 skodak Exp $
+<?php //$Id: editadvanced_form.php,v 1.28 2009/05/14 07:03:28 jerome Exp $
 
 require_once($CFG->dirroot.'/lib/formslib.php');
 
@@ -27,7 +27,7 @@ class user_editadvanced_form extends moodleform {
         $modules = get_list_of_plugins('auth');
         $auth_options = array();
         foreach ($modules as $module) {
-            $auth_options[$module] = get_string("auth_$module"."title", "auth");
+            $auth_options[$module] = auth_get_plugin_title ($module);
         }
         $mform->addElement('select', 'auth', get_string('chooseauthmethod','auth'), $auth_options);
         $mform->setHelpButton('auth', array('authchange', get_string('chooseauthmethod','auth')));
