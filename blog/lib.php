@@ -22,11 +22,14 @@ function blog_check_and_install_blocks() {
     global $USER, $DB;
 
     if (isloggedin() && !isguest()) {
+
         // if this user has not visited this page before
         if (!get_user_preferences('blogpagesize')) {
+
             // find the correct ids for blog_menu and blog_from blocks
             $menublock = $DB->get_record('block', array('name'=>'blog_menu'));
             $tagsblock = $DB->get_record('block', array('name'=>'blog_tags'));
+
             // add those 2 into block_instance page
 
 // Commmented out since the block changes broke it. Hopefully nico will fix it ;-)
@@ -53,12 +56,12 @@ function blog_check_and_install_blocks() {
 
 
 /**
- *  This function is in lib and not in BlogInfo because entries being searched
- *   might be found in any number of blogs rather than just one.
+ * This function is in lib and not in BlogInfo because entries being searched
+ * might be found in any number of blogs rather than just one.
  *
- *   $@param ...
+ * @param array filters
  */
-    function blog_print_html_formatted_entries($filters) {
+function blog_print_html_formatted_entries($filters) {
 
     global $CFG, $USER, $PAGE;
 
@@ -84,7 +87,7 @@ function blog_check_and_install_blocks() {
         $coursearg = '';
 
         if (!empty($PAGE->course)) {
-            $coursearg = '&amp;courseid='.$PAGE->coursej>id;
+            $coursearg = '&amp;courseid='.$PAGE->course->id;
             if (!empty($PAGE->module)) {
                 $coursearg .= '&amp;modid='.$PAGE->module->id;
             }
@@ -99,8 +102,8 @@ function blog_check_and_install_blocks() {
     if ($blogEntries) {
 
         $count = 0;
-        foreach ($blogEntries as $blogEntry) {
-            blog_print_entry($blogEntry, 'list', $filters); //print this entry.
+        foreach ($blog_entries as $blog_entry) {
+            blog_print_entry($blog_entry, 'list', $filters); //print this entry.
             $count++;
         }
 
@@ -132,27 +135,28 @@ function blog_check_and_install_blocks() {
  * with the internal objects and vars of moodle blog nor will they need to worry
  * about properly formatting their data
  *
- *   @param BlogEntry blogEntry - a hopefully fully populated BlogEntry object
- *   @param string viewtype Default is 'full'. If 'full' then display this blog entry
- *     in its complete form (eg. archive page). If anything other than 'full'
- *     display the entry in its abbreviated format (eg. index page)
+ * @param blog_entry blog_entry - a hopefully fully populated blog_entry object
+ * @param string viewtype Default is 'full'. If 'full' then display this blog entry
+ *                        in its complete form (eg. archive page). If anything other than 'full'
+ *                        display the entry in its abbreviated format (eg. index page)
+ * @return void This function only prints HTML
  */
-    function blog_print_entry($blogEntry, $viewtype='full', $filters=array(), $mode='loud') {
+function blog_print_entry($blog_entry, $viewtype='full', $filters=array(), $mode='loud') {
     global $USER, $CFG, $COURSE, $DB;
 
-    $template['body'] = format_text($blogEntry->summary, $blogEntry->format);
-    $template['title'] = '<a id="b'. s($blogEntry->id) .'" />';
+    $template['body'] = format_text($blog_entry->summary, $blog_entry->format);
+    $template['title'] = '<a id="b'. s($blog_entry->id) .'" />';
     //enclose the title in nolink tags so that moodle formatting doesn't autolink the text
-    $template['title'] .= '<span class="nolink">'. format_string($blogEntry->subject) .'</span>';
-    $template['userid'] = $blogEntry->userid;
-    $template['author'] = fullname($DB->get_record('user', array('id'=>$blogEntry->userid)));
-    $template['created'] = userdate($blogEntry->created);
+    $template['title'] .= '<span class="nolink">'. format_string($blog_entry->subject) .'</span>';
+    $template['userid'] = $blog_entry->userid;
+    $template['author'] = fullname($DB->get_record('user', array('id'=>$blog_entry->userid)));
+    $template['created'] = userdate($blog_entry->created);
 
-    if($blogEntry->created != $blogEntry->lastmodified){
-        $template['lastmod'] = userdate($blogEntry->lastmodified);
+    if ($blog_entry->created != $blog_entry->lastmodified) {
+        $template['lastmod'] = userdate($blog_entry->lastmodified);
     }
 
-    $template['publishstate'] = $blogEntry->publishstate;
+    $template['publishstate'] = $blog_entry->publishstate;
 
     /// preventing user to browse blogs that they aren't supposed to see
     /// This might not be too good since there are multiple calls per page
@@ -170,15 +174,13 @@ function blog_check_and_install_blocks() {
     //check to see if the post is unassociated with group/course level access
     $unassociatedpost = false;
 
-    if (!empty($CFG->useassoc) && ($blogEntry->publishstate == 'group' || $blogEntry->publishstate == 'course')) {
-        if (!$DB->record_exists('blog_association', array('blogid' => $blogEntry->id))) {
+    if (!empty($CFG->useassoc) && ($blog_entry->publishstate == 'group' || $blog_entry->publishstate == 'course')) {
+        if (!$DB->record_exists('blog_association', array('blogid' => $blog_entry->id))) {
             $unassociatedpost = true;
         }
     }
 
     /// Start printing of the blog
-
-
     echo '<table cellspacing="0" class="forumpost blogpost blog'. ($unassociatedpost ? 'draft' : $template['publishstate']).'" width="100%">';
 
     echo '<tr class="header"><td class="picture left">';
@@ -191,6 +193,7 @@ function blog_check_and_install_blocks() {
     $by->name =  '<a href="'.$CFG->wwwroot.'/user/view.php?id='.
                 $user->id.'&amp;course='.$COURSE->id.'">'.$fullname.'</a>';
     $by->date = $template['created'];
+
     print_string('bynameondate', 'forum', $by);
     echo '</div></td></tr>';
 
@@ -200,9 +203,9 @@ function blog_check_and_install_blocks() {
 
     echo '</td><td class="content">'."\n";
 
-    if ($blogEntry->attachment) {
+    if ($blog_entry->attachment) {
         echo '<div class="attachments">';
-        $attachedimages = blog_print_attachments($blogEntry);
+        $attachedimages = blog_print_attachments($blog_entry);
         echo '</div>';
     } else {
         $attachedimages = '';
@@ -239,16 +242,16 @@ function blog_check_and_install_blocks() {
     echo $attachedimages;
 /// Links to tags
 
-    if ( !empty($CFG->usetags) && ($blogtags = tag_get_tags_csv('post', $blogEntry->id)) ) {
+    if (!empty($CFG->usetags) && ($blogtags = tag_get_tags_csv('post', $blog_entry->id))) {
         echo '<div class="tags">';
         if ($blogtags) {
             print(get_string('tags', 'tag') .': '. $blogtags);
-       }
+        }
         echo '</div>';
     }
 
     //add associations
-    if (!empty($CFG->useassoc) && $blog_associations = $DB->get_records('blog_association', array('blogid' => $blogEntry->id))) {
+    if (!empty($CFG->useassoc) && $blog_associations = $DB->get_records('blog_association', array('blogid' => $blog_entry->id))) {
         echo '<div clas="tags">';
         $assoc_str = '';
 
@@ -289,17 +292,21 @@ function blog_check_and_install_blocks() {
 
     echo '<div class="commands">';
 
-    if (blog_user_can_edit_post($blogEntry)) {
-        echo '<a href="'.$CFG->wwwroot.'/blog/edit.php?action=edit&amp;id='.$blogEntry->id.'">'.$stredit.'</a>';
-        if (!$DB->record_exists_sql('SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asub.grade
-                                      FROM {assignment} a, {assignment_submissions} as asub WHERE
-                                      a.id = asub.assignment AND userid = '.$USER->id.' AND a.assignmenttype = \'blog\'
-                                      AND asub.data1 = \''.$blogEntry->id.'\''))
-            echo '| <a href="'.$CFG->wwwroot.'/blog/edit.php?action=delete&amp;id='.$blogEntry->id.'">'.$strdelete.'</a>';
-            echo ' | ';
+    if (blog_user_can_edit_post($blog_entry)) {
+        echo '<a href="'.$CFG->wwwroot.'/blog/edit.php?action=edit&amp;id='.$blog_entry->id.'">'.$stredit.'</a>';
+
+        $sql = "SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asub.grade
+                FROM {assignment} a, {assignment_submissions} as asub
+                WHERE a.id = asub.assignment AND userid = ? AND a.assignmenttype = 'blog' AND asub.data1 = '?'";
+
+        if (!$DB->record_exists_sql($sql, array($USER->id, $blog_entry->id))) {
+            echo '| <a href="'.$CFG->wwwroot.'/blog/edit.php?action=delete&amp;id='.$blog_entry->id.'">'.$strdelete.'</a>';
+        }
+
+        echo ' | ';
     }
 
-    echo '<a href="'.$CFG->wwwroot.'/blog/index.php?postid='.$blogEntry->id.'">'.get_string('permalink', 'blog').'</a>';
+    echo '<a href="'.$CFG->wwwroot.'/blog/index.php?postid='.$blog_entry->id.'">'.get_string('permalink', 'blog').'</a>';
 
     echo '</div>';
 
@@ -315,6 +322,7 @@ function blog_check_and_install_blocks() {
 
 /**
  * Deletes all the user files in the attachments area for a post
+ * @param object $post
  */
 function blog_delete_attachments($post) {
     $fs = get_file_storage();
@@ -421,7 +429,7 @@ function blog_applicable_publish_states($courseid='') {
  *
  * This also applies to deleting of posts.
  */
-function blog_user_can_edit_post($blogEntry) {
+function blog_user_can_edit_post($blog_entry) {
     global $CFG, $USER;
 
     $sitecontext = get_context_instance(CONTEXT_SYSTEM);
@@ -430,7 +438,7 @@ function blog_user_can_edit_post($blogEntry) {
         return true; // can edit any blog post
     }
 
-    if ($blogEntry->userid == $USER->id
+    if ($blog_entry->userid == $USER->id
       and has_capability('moodle/blog:create', $sitecontext)) {
         return true; // can edit own when having blog:create capability
     }
@@ -444,7 +452,7 @@ function blog_user_can_edit_post($blogEntry) {
  * Only blog level is checked here, the capabilities are enforced
  * in blog/index.php
  */
-function blog_user_can_view_user_post($targetuserid, $blogEntry=null) {
+function blog_user_can_view_user_post($targetuserid, $blog_entry=null) {
     global $CFG, $USER, $DB;
 
     if (empty($CFG->bloglevel)) {
@@ -461,12 +469,12 @@ function blog_user_can_view_user_post($targetuserid, $blogEntry=null) {
     }
 
     // coming for 1 post, make sure it's not a draft
-    if ($blogEntry and $blogEntry->publishstate == 'draft') {
+    if ($blog_entry and $blog_entry->publishstate == 'draft') {
         return false;  // can not view draft of others
     }
 
     // coming for 1 post, make sure user is logged in, if not a public blog
-    if ($blogEntry && $blogEntry->publishstate != 'public' && !isloggedin()) {
+    if ($blog_entry && $blog_entry->publishstate != 'public' && !isloggedin()) {
         return false;
     }
 
