@@ -1,4 +1,4 @@
-<?php  // $Id: authlib.php,v 1.22 2009/01/18 18:00:45 skodak Exp $
+<?php  // $Id: authlib.php,v 1.23 2009/05/14 07:03:27 jerome Exp $
 /**
  * @author Martin Dougiamas
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
@@ -360,11 +360,7 @@ class auth_plugin_base {
      * Return the properly translated human-friendly title of this auth plugin
      */
     function get_title() {
-        $authtitle = get_string("auth_{$this->authtype}title", "auth");
-        if ($authtitle == "[[auth_{$this->authtype}title]]") {
-            $authtitle = get_string("auth_{$this->authtype}title", "auth_{$this->authtype}");
-        }
-        return $authtitle;
+        return auth_get_plugin_title($this->authtype);
     }
 
     /**

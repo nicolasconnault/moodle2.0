@@ -1,4 +1,4 @@
-<?php // $Id: users.php,v 1.48 2009/05/08 12:23:22 skodak Exp $
+<?php // $Id: users.php,v 1.49 2009/05/14 07:03:28 jerome Exp $
 
 // This file defines settingpages and externalpages under the "users" category
 
@@ -41,10 +41,7 @@ if ($hassiteconfig
         $authbyname = array();
 
         foreach ($auths as $auth) {
-            $strauthname = get_string("auth_{$auth}title", "auth");
-            if ($strauthname == "[[auth_{$auth}title]]") {
-                $strauthname = get_string("auth_{$auth}title", "auth_{$auth}");
-            }
+            $strauthname = auth_get_plugin_title($auth);
             $authbyname[$strauthname] = $auth;
         }
         ksort($authbyname);

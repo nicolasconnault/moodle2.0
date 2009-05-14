@@ -1,4 +1,4 @@
-<?php // $Id: weblib.php,v 1.1251 2009/05/08 03:30:58 tjhunt Exp $
+<?php // $Id: weblib.php,v 1.1252 2009/05/14 07:03:27 jerome Exp $
 
 ///////////////////////////////////////////////////////////////////////////
 //                                                                       //
@@ -33,7 +33,7 @@
  * - datalib.php - functions that access the database.
  * - moodlelib.php - general-purpose Moodle functions.
  * @author Martin Dougiamas
- * @version  $Id: weblib.php,v 1.1251 2009/05/08 03:30:58 tjhunt Exp $
+ * @version  $Id: weblib.php,v 1.1252 2009/05/14 07:03:27 jerome Exp $
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @package moodlecore
  */
@@ -7322,6 +7322,19 @@ class html_list_progress_trace extends moodle_progress_trace {
             $this->currentdepth -= 1;
         }
     }
+}
+
+/**
+ * Return the authentication plugin title
+ * @param string $authtype plugin type
+ * @return string
+ */
+function auth_get_plugin_title ($authtype) {
+    $authtitle = get_string("auth_{$authtype}title", "auth");
+    if ($authtitle == "[[auth_{$authtype}title]]") {
+        $authtitle = get_string("auth_{$authtype}title", "auth_{$authtype}");
+    }
+    return $authtitle;
 }
 
 // vim:autoindent:expandtab:shiftwidth=4:tabstop=4:tw=140:
