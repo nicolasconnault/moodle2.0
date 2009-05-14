@@ -1,0 +1,138 @@
+D/assignment////
+D/blog////
+D/bulkusers////
+D/chat////
+D/choice////
+D/completion////
+D/condition////
+D/data////
+D/enrol////
+D/exercise////
+D/feedback////
+D/filters////
+D/forum////
+D/glossary////
+D/grade////
+D/hotpot////
+D/journal////
+D/label////
+D/lesson////
+D/message////
+D/notes////
+D/portfolio////
+D/qformat_aiken////
+D/qformat_blackboard////
+D/qformat_blackboard_six////
+D/qformat_examview////
+D/qformat_gift////
+D/qformat_hotpot////
+D/qformat_learnwise////
+D/qformat_missingword////
+D/qformat_multianswer////
+D/qformat_qti_two////
+D/qformat_webct////
+D/qformat_xhtml////
+D/qformat_xml////
+D/qtype_multianswer////
+D/qtype_multichoice////
+D/qtype_truefalse////
+D/question////
+D/quiz////
+D/quiz_statistics////
+D/resource////
+D/scorm////
+D/survey////
+D/userkey////
+D/wiki////
+D/workshop////
+/accessibility.html/1.3/Wed Apr 12 13:22:19 2006//
+/advanced_markdown.html/1.2/Mon Sep 17 12:30:22 2007//
+/advancedsettings.html/1.2/Fri Jan 05 06:40:12 2007//
+/assignroles.html/1.5/Wed Jan 09 06:50:42 2008//
+/authchange.html/1.2/Fri Jan 05 06:40:13 2007//
+/blockip.html/1.1/Mon Jul 14 09:10:51 2008//
+/cmidnumber.html/1.2/Thu Jan 24 16:11:14 2008//
+/contexts.html/1.5/Tue Feb 05 09:58:05 2008//
+/cookies.html/1.2/Fri Jan 05 06:40:13 2007//
+/cost.html/1.3/Fri Jan 05 06:40:13 2007//
+/courseavailability.html/1.2/Fri Jan 05 06:40:13 2007//
+/coursecategory.html/1.2/Fri Jan 05 06:40:13 2007//
+/coursedefaultrole.html/1.2/Fri Jan 05 06:40:13 2007//
+/courseenrollable2.html/1.2/Mon Jul 30 11:51:37 2007//
+/courseenrolmentplugins.html/1.1/Thu Mar 09 02:48:27 2006//
+/courseformats.html/1.6/Thu Aug 16 10:25:50 2007//
+/coursefullname.html/1.2/Fri Jan 05 06:40:13 2007//
+/coursegrades.html/1.3/Mon Oct 13 20:14:30 2008//
+/coursehiddensections.html/1.2/Fri Jan 05 06:40:14 2007//
+/courseidnumber.html/1.2/Fri Jan 05 06:40:14 2007//
+/coursenewsitems.html/1.2/Fri Jan 05 06:40:14 2007//
+/coursenumsections.html/1.2/Fri Jan 05 06:40:14 2007//
+/courserecent.html/1.2/Fri Jan 05 06:40:14 2007//
+/coursereports.html/1.2/Fri Jan 05 06:40:14 2007//
+/courseshortname.html/1.2/Fri Jan 05 06:40:14 2007//
+/coursestartdate.html/1.3/Thu Mar 01 02:55:18 2007//
+/courseuploadsize.html/1.2/Fri Jan 05 06:40:14 2007//
+/directorypaths.html/1.3/Thu Aug 16 10:26:05 2007//
+/editorshortcuts.html/1.3/Fri Dec 08 04:42:39 2006//
+/emoticons.html/1.11/Thu Sep 25 10:07:11 2008//
+/emoticons2.html/1.3/Thu Sep 25 08:05:07 2008//
+/enrolmentkey.html/1.2/Fri Jan 05 06:40:15 2007//
+/enrolperiod.html/1.3/Mon Aug 06 22:19:20 2007//
+/expirynotify.html/1.2/Mon Sep 15 14:06:05 2008//
+/expirynotifystudents.html/1.2/Mon Sep 15 14:06:06 2008//
+/expirythreshold.html/1.2/Mon Sep 15 14:06:06 2008//
+/extendenrol.html/1.2/Thu Apr 17 14:50:43 2008//
+/filters.html/1.7/Wed Oct 10 08:39:59 2007//
+/forcepasswordchange.html/1.2/Thu Jul 03 04:10:50 2008//
+/groupenrolmentkey.html/1.2/Fri Mar 30 02:39:46 2007//
+/groupextendenrol.html/1.2/Thu Apr 17 15:00:15 2008//
+/grouping.html/1.2/Mon Oct 13 22:41:24 2008//
+/groupmembersonly.html/1.2/Mon Oct 13 22:41:25 2008//
+/groupmode.html/1.3/Wed May 23 11:59:23 2007//
+/groupmodeforce.html/1.2/Fri Jan 05 06:40:15 2007//
+/grouprestore.html/1.2/Thu Mar 20 21:07:03 2008//
+/guestaccess.html/1.2/Fri Jan 05 06:40:15 2007//
+/hiddenassign.html/1.3/Fri Mar 30 02:24:18 2007//
+/html.html/1.4/Thu Sep 25 07:33:47 2008//
+/index.html/1.11/Wed May 07 03:08:45 2008//
+/install.html/1.8/Thu Sep 25 07:33:47 2008//
+/interestslist.html/1.2/Thu Jul 03 04:10:50 2008//
+/langedit.html/1.3/Thu Sep 25 07:33:47 2008//
+/langpackages.html/1.2/Wed Nov 21 03:09:37 2007//
+/langswitchstorage.html/1.1/Sat Nov 04 21:56:42 2006//
+/localfiltersettings.html/1.1/Mon Apr 13 07:12:41 2009//
+/markdown.html/1.4/Thu Sep 25 07:33:47 2008//
+/metacourse.html/1.4/Tue Sep 16 06:13:35 2008//
+/mods.html/1.2/Fri Jan 05 06:40:15 2007//
+/newpassword.html/1.2/Thu Jul 03 04:10:50 2008//
+/overrides.html/1.3/Fri Jan 05 06:40:15 2007//
+/participantswithselectedusers.html/1.2/Fri Jan 05 06:40:15 2007//
+/participationreport.html/1.3/Fri Jan 05 06:40:15 2007//
+/permissions.html/1.8/Tue Feb 05 09:58:05 2008//
+/picture.html/1.4/Sun Dec 16 16:14:48 2007//
+/profilevisible.html/1.2/Wed Apr 04 04:22:16 2007//
+/questions.html/1.3/Thu Aug 16 10:26:10 2007//
+/reading.html/1.3/Thu Aug 16 10:26:01 2007//
+/recaptcha.html/1.2/Wed Mar 12 06:56:37 2008//
+/requiredelement.html/1.2/Sat Jan 13 04:54:44 2007//
+/richtext.html/1.11/Sun May 25 09:39:03 2008//
+/richtext2.html/1.5/Thu Sep 25 08:05:07 2008//
+/rolerenaming.html/1.3/Mon Oct 06 15:23:21 2008//
+/roles.html/1.7/Thu Sep 25 07:20:32 2008//
+/scales.html/1.3/Thu Aug 16 10:25:52 2007//
+/search.html/1.2/Fri Jan 05 06:40:17 2007//
+/sitefilesused.html/1.2/Thu Sep 25 07:20:32 2008//
+/summaries.html/1.2/Fri Jan 05 06:40:17 2007//
+/surveys.html/1.5/Wed Oct 31 21:02:57 2007//
+/switchrole.html/1.1/Fri Feb 02 06:15:39 2007//
+/tableexportformats.html/1.3/Fri Aug 15 10:06:11 2008//
+/teachers.html/1.3/Thu Sep 25 07:20:32 2008//
+/text.html/1.8/Mon May 05 13:28:50 2008//
+/text2.html/1.2/Thu Sep 25 08:05:07 2008//
+/textformat.html/1.6/Thu Sep 25 07:20:32 2008//
+/uploadgroups.html/1.6/Fri Jul 06 15:35:39 2007//
+/uploadpictures.html/1.3/Sun Mar 09 02:43:01 2008//
+/uploadusers.html/1.9/Mon Aug 27 13:56:40 2007//
+/uploadusers2.html/1.4/Thu Dec 06 09:21:55 2007//
+/uploadusers3.html/1.2/Mon Jan 21 06:42:49 2008//
+/writing.html/1.3/Thu Aug 16 10:26:08 2007//

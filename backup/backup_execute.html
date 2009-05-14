@@ -1,0 +1,95 @@
+<?php //$Id: backup_execute.html,v 1.54 2009/01/02 22:56:49 skodak Exp $
+    //This page prints the backup todo list to see everything
+
+    //Check login   
+    require_login();
+
+    $loginurl = get_login_url();
+
+    if (!empty($course->id)) {
+        if (!has_capability('moodle/site:backup', get_context_instance(CONTEXT_COURSE, $course->id))) {
+            if (empty($to)) {
+                print_error("cannotuseadminadminorteacher", '', $loginurl);
+            } else {
+                if (!has_capability('moodle/site:backup', get_context_instance(CONTEXT_COURSE, $to))) {
+                    print_error("cannotuseadminadminorteacher", '', $loginurl);
+                }
+            }
+        }
+    } else {
+        if (!has_capability('moodle/site:backup', get_context_instance(CONTEXT_SYSTEM))) {
+            print_error("cannotuseadmin", '', $loginurl);
+        }
+    }
+
+
+    //Check site
+    if (!$site = get_site()) {
+        print_error("siteisnotdefined", 'debug');
+    }
+
+    $preferences = new StdClass;
+    backup_fetch_prefs_from_request($preferences,$count,$course);
+    //Another Info
+    backup_add_static_preferences($preferences);
+
+    if ($count == 0) {
+        notice("No backupable modules are installed!");
+    }
+
+
+    if (empty($to)) {
+        //Start the main table
+        echo "<table cellpadding=\"5\">";
+        
+        //Now print the Backup Name tr
+        echo "<tr>";
+        echo "<td align=\"right\"><b>";
+        echo get_string("name").":";
+        echo "</b></td><td>";
+        echo $preferences->backup_name;
+        echo "</td></tr>";
+        
+        //Start the main tr, where all the backup progress is done
+        echo "<tr>";
+        echo "<td colspan=\"2\">";
+        
+        //Start the main ul
+        echo "<ul>";
+    }
+
+    $errorstr = '';
+    $status = backup_execute($preferences, $errorstr);
+
+    //Ends th main ul
+    echo "</ul>";
+
+    //End the main tr, where all the backup is done
+    echo "</td></tr>";
+
+    //End the main table
+    echo "</table>";
+    
+    if (!$status) {
+        print_error('error', 'error', "$CFG->wwwroot/course/view.php?id=$course->id");
+    }
+
+    if (empty($to)) {
+        //Print final message
+        print_simple_box(get_string("backupfinished"),"center");
+        $context = get_context_instance(CONTEXT_COURSE, $course->id);
+        print_continue("$CFG->wwwroot/files/index.php?contextid=".$context->id."&amp;filearea=course_backup&amp;itemid=0");    
+    } else {
+        print_simple_box(get_string('importdataexported'),"CENTER");
+        if (!empty($preferences->backup_destination)) {
+            $filename = $preferences->backup_destination."/".$preferences->backup_name;
+        } else {
+            $filename = $preferences->backup_course."/backupdata/".$preferences->backup_name;
+        }
+        error_log($filename);
+        $SESSION->import_preferences = $preferences;
+        print_continue($CFG->wwwroot.'/course/import/activities/index.php?id='.$to.'&fromcourse='.$id.'&filename='.$filename);
+    }
+
+    $SESSION->backupprefs[$course->id] = null; // unset it so we're clear next time.
+?>

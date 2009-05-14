@@ -1,0 +1,43 @@
+<?php  // $Id: format.php,v 1.5 2008/06/09 16:53:48 skodak Exp $ 
+
+////////////////////////////////////////////////////////////////////////////
+/// MULTIANSWER FORMAT
+///
+/// Created by Henrik Kaipe
+///
+////////////////////////////////////////////////////////////////////////////
+
+// Based on format.php, included by ../../import.php
+/**
+ * @package questionbank
+ * @subpackage importexport
+ */
+class qformat_multianswer extends qformat_default {
+
+    function provide_import() {
+      return true;
+    }
+
+    function readquestions($lines) {
+        // Parses an array of lines into an array of questions.
+        // For this class the method has been simplified as
+        // there can never be more than one question for a
+        // multianswer import
+
+        $questions= array();
+        $thequestion= qtype_multianswer_extract_question(
+                implode('',$lines));
+        $thequestion->qtype = MULTIANSWER;
+        $thequestion->course = $this->course;
+
+        if (!empty($thequestion)) {
+            $thequestion->name = $lines[0];
+            
+            $questions[] = $thequestion;
+        }
+
+        return $questions;
+    }
+}
+
+?>
