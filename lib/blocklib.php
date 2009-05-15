@@ -651,7 +651,7 @@ function block_load_class($blockname) {
  * @param $blockmanager Not used.
  * @return array of block type ids.
  */
-function blocks_get_missing(&$page) {
+function blocks_get_missing(&$page, &$blockmanager) {
     return array_keys($page->blocks->get_addable_blocks());
 }
 
@@ -756,24 +756,21 @@ function blocks_delete_all_for_context($contextid) {
     $DB->delete_records('block_positions', array('contextid' => $contextid));
 }
 
-// @deprecated
 // Accepts an array of block instances and checks to see if any of them have content to display
 // (causing them to calculate their content in the process). Returns true or false. Parameter passed
 // by reference for speed; the array is actually not modified.
 function blocks_have_content(&$blockmanager, $region) {
-    global $PAGE;
-    debugging('Call to deprecated function blocks_have_content. ' .
-            'Call !empty($PAGE->blocks-get_content_for_region($region)) instead.', DEBUG_DEVELOPER);
-    $content = $PAGE->blocks->get_content_for_region($region);
+    // TODO deprecate
+    $content = $blockmanager->get_content_for_region($region);
     return !empty($content);
 }
 
 // This function prints one group of blocks in a page
-function blocks_print_group($page, $region) {
-    global $COURSE, $CFG, $USER, $PAGE;
+function blocks_print_group($page, $blockmanager, $region) {
+    global $COURSE, $CFG, $USER;
 
-    $isediting = $PAGE->user_is_editing();
-    $groupblocks = $PAGE->blocks->get_blocks_for_region($region);
+    $isediting = $page->user_is_editing();
+    $groupblocks = $blockmanager->get_blocks_for_region($region);
 
     foreach($groupblocks as $instance) {
         if (($isediting && empty($instance->pinned))) {
@@ -812,7 +809,7 @@ function blocks_print_group($page, $region) {
 
     if ($page->blocks->get_default_region() == $region &&
             $page->user_is_editing() && $page->user_can_edit_blocks()) {
-        blocks_print_adminblock($page);
+        blocks_print_adminblock($page, $blockmanager);
     }
 }
 
@@ -1295,7 +1292,7 @@ function blocks_get_by_page($page) {
 
 
 //This function prints the block to admin blocks as necessary
-function blocks_print_adminblock($page) {
+function blocks_print_adminblock($page, $blockmanager) {
     global $USER;
 
     $missingblocks = array_keys($page->blocks->get_addable_blocks());
