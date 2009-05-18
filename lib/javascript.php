@@ -4,13 +4,8 @@
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
 }
-
-if (can_use_html_editor() && !empty($CFG->editorsrc)) {
-    foreach ( $CFG->editorsrc as $scriptsource ) {
-        echo '<script type="text/javascript" src="'. $scriptsource .'"></script>'."\n";
-    }
-}
 ?>
+
 <!--<style type="text/css">/*<![CDATA[*/ body{behavior:url(<?php echo $CFG->httpswwwroot ?>/lib/csshover.htc);} /*]]>*/</style>-->
 
 <script type="text/javascript" src="<?php echo $CFG->httpswwwroot ?>/lib/javascript-static.js"></script>
@@ -19,7 +14,7 @@ if (can_use_html_editor() && !empty($CFG->editorsrc)) {
 <script type="text/javascript" src="<?php echo $CFG->httpswwwroot ?>/lib/overlib/overlib_cssstyle.js"></script>
 <script type="text/javascript" src="<?php echo $CFG->httpswwwroot ?>/lib/cookies.js"></script>
 <script type="text/javascript" src="<?php echo $CFG->httpswwwroot ?>/lib/ufo.js"></script>
-<script type="text/javascript" src="<?php echo $CFG->httpswwwroot ?>/lib/dropdown.js"></script>  
+<script type="text/javascript" src="<?php echo $CFG->httpswwwroot ?>/lib/dropdown.js"></script>
 
 <script type="text/javascript" defer="defer">
 //<![CDATA[
@@ -45,3 +40,16 @@ if (!empty($focus)) {
 ?>
 //]]>
 </script>
+<?php
+    // editors integrations
+    //TODO: optimize loading of editors
+    if (empty($CFG->texteditors)) {
+        $CFG->texteditors = 'tinymce,textarea';
+    }
+    $activeeditors = explode(',', $CFG->texteditors);
+    foreach ($activeeditors as $editor) {
+        if ($editor = get_texteditor($editor)) {
+            echo $editor->header_js();
+        }
+    }
+?>
