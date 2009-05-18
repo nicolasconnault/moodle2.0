@@ -1,6 +1,7 @@
 <?php  // $Id$
 
 require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->dirroot.'/repository/lib.php');
 
 class blog_edit_form extends moodleform {
 
@@ -22,9 +23,6 @@ class blog_edit_form extends moodleform {
                 $noedit = true;
             }
         }
-
-        // the upload manager is used directly in entry processing, moodleform::save_files() is not used yet
-        $this->set_upload_manager(new upload_manager('attachment', true, false, $COURSE, false, 0, true, true, false));
 
 
         $mform->addElement('header', 'general', get_string('general', 'form'));
@@ -48,7 +46,7 @@ class blog_edit_form extends moodleform {
 
         }
 
-        $mform->addElement('file', 'attachment', get_string('attachment', 'forum'));
+        $mform->addElement('filepicker', 'attachment', get_string('attachment', 'forum'));
 
         //disable publishstate options that are not allowed
         $publishstates = array();
@@ -134,12 +132,8 @@ class blog_edit_form extends moodleform {
             $format = $mform->getElement('format');
             $attachment->updateAttributes(array('disabled' => 'disabled'));
             $format->updateAttributes(array('disabled' => 'disabled'));
-        }
-
-    }
-
-
-
+        } 
+    } 
 
     function validation($data, $files) {
         global $CFG, $DB, $USER;
@@ -147,92 +141,114 @@ class blog_edit_form extends moodleform {
         $errors = array();
 
         //check to see if it's part of a submitted blog assignment
-        if($blogassignment = $DB->get_record_sql('SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asub.grade
-                                          FROM {assignment} a, {assignment_submissions} as asub WHERE
-                                          a.id = asub.assignment AND userid = '.$USER->id.' AND a.assignmenttype = \'blog\'
-                                          AND asub.data1 = \''.$data['id'].'\'')) {
+        $sql = "SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asub.grade
+                FROM {assignment} a, {assignment_submissions} as asub 
+                WHERE a.id = asub.assignment AND userid = ? 
+                AND a.assignmenttype = 'blog' AND asub.data1 = '?'";
+
+        $blogassignment = $DB->get_record_sql($sql, array($USER->id, $data['id']));
+
+        if ($blogassignment) {
 
             $original = $DB->get_record('post', array('id' => $data['id']));
+            
             //don't allow updates of the sumamry, subject, or attachment
             $changed = ($original->summary != $data['summary'] ||
                         $original->subject != $data['subject'] ||
-                        !empty($files));
-
-
+                        !empty($files)); 
 
             //send an error if improper changes are being made
-            if(($changed and time() > $blogassignment->timedue and $blogassignment->preventlate = 1) or
+            if (($changed and time() > $blogassignment->timedue and $blogassignment->preventlate = 1) or
                 ($changed and $blogassignment->grade != -1) or
                 (time() < $blogassignment->timedue and ($postaccess > $blogassignment->var2 || $postaccess == -1))) {
+                
                 //too late to edit this post
-                if($original->subject != $data['subject']) $errors['subject'] = get_string('canteditblogassignment', 'blog');
-                if($original->summary != $data['summary']) $errors['summary'] = get_string('canteditblogassignment', 'blog');
-                if(!empty($files)) $errors['attachment'] = get_string('canteditblogassignment', 'blog');
+                if ($original->subject != $data['subject']) {
+                    $errors['subject'] = get_string('canteditblogassignment', 'blog');
+                }
+
+                if ($original->summary != $data['summary']) {
+                    $errors['summary'] = get_string('canteditblogassignment', 'blog');
+                }
+
+                if (!empty($files)) {
+                    $errors['attachment'] = get_string('canteditblogassignment', 'blog');
+                }
             }
 
             //insure the publishto value is within proper constraints
             $publishstates = array();
             $postaccess = -1;
-	    $i=0;
-            foreach(blog_applicable_publish_states() as $state => $desc) {
-                if($state == $data['publishstate'])
+            $i=0;
+            
+            foreach (blog_applicable_publish_states() as $state => $desc) {
+                if ($state == $data['publishstate']) {
                     $postaccess = $i;
+                }
                 $publishstates[$i++] = $state;
-    }
-            if(time() < $blogassignment->timedue and ($postaccess > $blogassignment->var2 || $postaccess == -1))
+            }
+            
+            if (time() < $blogassignment->timedue and ($postaccess > $blogassignment->var2 || $postaccess == -1)) {
                 $errors['publishto'] = get_string('canteditblogassignment', 'blog');
-
+            }
+            
         } else {
-            if(!$data['courseassoc'] && ($data['publishstate'] == 'course' ||
-                                   $data['publishstate'] == 'group')
-                                   && !empty($CFG->useassoc))
-            return array('publishstate' => get_string('mustassociatecourse', 'blog'));
+            if (!$data['courseassoc'] && ($data['publishstate'] == 'course' || $data['publishstate'] == 'group') && !empty($CFG->useassoc)) {
+                return array('publishstate' => get_string('mustassociatecourse', 'blog'));
+            }
         }
 
 
         //validate course association
-	if(!empty($data['courseassoc'])) {
-	    $coursecontext = $DB->get_record('context', array('id' => $data['courseassoc'], 'contextlevel' => CONTEXT_COURSE));
-            if($coursecontext)  {    //insure associated course has a valid context id
-	        //insure the user has access to this course
-		if(!has_capability('moodle/course:view', $coursecontext, $USER->id))
-		    $errors['courseassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
-	    } else
-	        $errors['courseassoc'] = get_string('invalidcontextid', 'blog');
+        if (!empty($data['courseassoc'])) {
+            $coursecontext = $DB->get_record('context', array('id' => $data['courseassoc'], 'contextlevel' => CONTEXT_COURSE));
+            
+            if ($coursecontext)  {    //insure associated course has a valid context id
+            //insure the user has access to this course
+                if (!has_capability('moodle/course:view', $coursecontext, $USER->id)) {
+                    $errors['courseassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
+                } else {
+                    $errors['courseassoc'] = get_string('invalidcontextid', 'blog');
+                } 
+            }
 
-	}
+            //validate mod associations
+            if (!empty($data['modassoc'])) {
+                //insure mods are valid 
+                foreach ($data['modassoc'] as $modid) {
+                    $modcontext = $DB->get_record('context', array('id' => $modid, 'contextlevel' => CONTEXT_MODULE));
 
-        //validate mod associations
-	if(!empty($data['modassoc'])) {
-	    //insure mods are valid
-	    foreach($data['modassoc'] as $modid) {
-	        $modcontext = $DB->get_record('context', array('id' => $modid, 'contextlevel' => CONTEXT_MODULE));
-		if($modcontext) {  //insure associated mod has a valid context id
-                    //get context of the mod's course
-		    $path = split('/', $modcontext->path);
-                    $coursecontext = $DB->get_record('context', array('id' => $path[3]));
+                    if ($modcontext) {  //insure associated mod has a valid context id
+                        //get context of the mod's course
+                        $path = split('/', $modcontext->path);
+                        $coursecontext = $DB->get_record('context', array('id' => $path[3]));
 
-	            //insure only one course is associated
-	        	if(!empty($data['courseassoc'])) {
-		        if($data['courseassoc'] != $coursecontext->id)
-		            $errors['modassoc'] = get_string('onlyassociateonecourse', 'blog');
-		    } else {
-		        $data['courseassoc'] = $coursecontext->id;
-    }
+                        //insure only one course is associated
+                        if (!empty($data['courseassoc'])) {
+                            if ($data['courseassoc'] != $coursecontext->id) {
+                                $errors['modassoc'] = get_string('onlyassociateonecourse', 'blog');
+                            }
+                        } else {
+                            $data['courseassoc'] = $coursecontext->id;
+                        }
+                    }
 
                     //insure the user has access to each mod's course
-		    if(!has_capability('moodle/course:view', $coursecontext, $USER->realuser))
-		        $errors['modassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
-                } else
-	            $errors['modassoc'] = get_string('invalidcontextid', 'blog');
-	    }
-	}
+                    if(!has_capability('moodle/course:view', $coursecontext, $USER->realuser)) {
+                        $errors['modassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
+                    } else {
+                        $errors['modassoc'] = get_string('invalidcontextid', 'blog');
+                    }
+                }
+            }
 
-        if($errors) return $errors;
-	return true;
-    }
+            if ($errors) {
+                return $errors;
 
-
+            }
+            return true;
+        }
+    } 
 
     function display() {
         $existing = $this->_customdata['existing'];
