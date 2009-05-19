@@ -412,7 +412,7 @@ class block_manager implements ArrayAccess {
     }
 
     /**
-     * 
+     *
      * @param integer $instanceid
      * @return unknown_type
      */
@@ -1059,7 +1059,7 @@ function blocks_execute_action($page, &$blockmanager, $blockaction, $instanceori
             }
 
             $region = $page->blocks->get_default_region();
-            $weight = $DB->get_field_sql("SELECT MAX(defaultweight) FROM {block_instances} 
+            $weight = $DB->get_field_sql("SELECT MAX(defaultweight) FROM {block_instances}
                     WHERE contextid = ? AND defaultregion = ?", array($page->context->id, $region));
             $pagetypepattern = $page->pagetype;
             if (strpos($pagetypepattern, 'course-view') === 0) {
