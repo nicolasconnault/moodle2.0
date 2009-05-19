@@ -769,7 +769,7 @@ function blocks_have_content(&$blockmanager, $region) {
 }
 
 // This function prints one group of blocks in a page
-function blocks_print_group($page, $region) {
+function blocks_print_group($page, $blockmanager, $region) {
     global $COURSE, $CFG, $USER, $PAGE;
 
     $isediting = $PAGE->user_is_editing();

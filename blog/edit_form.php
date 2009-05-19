@@ -5,6 +5,12 @@ require_once($CFG->dirroot.'/repository/lib.php');
 
 class blog_edit_form extends moodleform {
 
+    /**
+     * definition
+     *
+     * @access public
+     * @return void
+     */
     function definition() {
         global $CFG, $COURSE, $USER, $DB;
 
@@ -13,7 +19,7 @@ class blog_edit_form extends moodleform {
         if(!empty($this->_customdata['assignmentdata'])) {
 	        $assignmentdata = $this->_customdata['assignmentdata'];
         }
-        
+
         $existing = $this->_customdata['existing'];
         $sitecontext = $this->_customdata['sitecontext'];
         //determine if content elements should be deactivated for a past due blog assignment
@@ -51,7 +57,7 @@ class blog_edit_form extends moodleform {
         //disable publishstate options that are not allowed
         $publishstates = array();
         $i = 0;
-        
+
         foreach (blog_applicable_publish_states() as $state => $desc) {
             if (!empty($assignmentdata)) {
                 if ($i <= $assignmentdata->var2) { //var2 is the maximum publish state allowed
@@ -74,21 +80,21 @@ class blog_edit_form extends moodleform {
         }
 
         $allmodnames = array();
-        
+
         if (!empty($CFG->useassoc)) {
             $mform->addElement('header', 'assochdr', get_string('associations', 'blog'));
             $courses = get_my_courses($USER->id, 'visible DESC, fullname ASC');
             $course_names[0] = 'none';
-            
+
             if(!empty($courses)) {
-	        
+
                 foreach ($courses as $course) {
                     $course_names[$course->context->id] = $course->fullname;
                     $modinfo = get_fast_modinfo($course, $USER->id);
                     $course_context_path = $DB->get_field('context', 'path', array('id' => $course->context->id));
 
                     foreach($modinfo->instances as $modname => $instances) {
-                        
+
                         foreach($instances as $modid => $mod) {
                             $mod_context_id = $DB->get_field_select('context', 'id',
                                 'instanceid = '.$mod->id.' AND ' .
@@ -124,7 +130,7 @@ class blog_edit_form extends moodleform {
             $courseassoc->updateAttributes(array('disabled' => 'disabled'));
             $modassoc->updateAttributes(array('disabled' => 'disabled'));
         }
-        
+
         if($noedit) {  //disable some other fields when editing is not allowed
             $subject = $mform->getElement('subject');
             $summary = $mform->getElement('summary');
@@ -132,9 +138,17 @@ class blog_edit_form extends moodleform {
             $format = $mform->getElement('format');
             $attachment->updateAttributes(array('disabled' => 'disabled'));
             $format->updateAttributes(array('disabled' => 'disabled'));
-        } 
-    } 
+        }
+    }
 
+    /**
+     * validation
+     *
+     * @param mixed $data
+     * @param mixed $files
+     * @access public
+     * @return void
+     */
     function validation($data, $files) {
         global $CFG, $DB, $USER;
 
@@ -142,8 +156,8 @@ class blog_edit_form extends moodleform {
 
         //check to see if it's part of a submitted blog assignment
         $sql = "SELECT a.timedue, a.preventlate, a.emailteachers, a.var2, asub.grade
-                FROM {assignment} a, {assignment_submissions} as asub 
-                WHERE a.id = asub.assignment AND userid = ? 
+                FROM {assignment} a, {assignment_submissions} as asub
+                WHERE a.id = asub.assignment AND userid = ?
                 AND a.assignmenttype = 'blog' AND asub.data1 = '?'";
 
         $blogassignment = $DB->get_record_sql($sql, array($USER->id, $data['id']));
@@ -151,17 +165,17 @@ class blog_edit_form extends moodleform {
         if ($blogassignment) {
 
             $original = $DB->get_record('post', array('id' => $data['id']));
-            
+
             //don't allow updates of the sumamry, subject, or attachment
             $changed = ($original->summary != $data['summary'] ||
                         $original->subject != $data['subject'] ||
-                        !empty($files)); 
+                        !empty($files));
 
             //send an error if improper changes are being made
             if (($changed and time() > $blogassignment->timedue and $blogassignment->preventlate = 1) or
                 ($changed and $blogassignment->grade != -1) or
                 (time() < $blogassignment->timedue and ($postaccess > $blogassignment->var2 || $postaccess == -1))) {
-                
+
                 //too late to edit this post
                 if ($original->subject != $data['subject']) {
                     $errors['subject'] = get_string('canteditblogassignment', 'blog');
@@ -180,18 +194,18 @@ class blog_edit_form extends moodleform {
             $publishstates = array();
             $postaccess = -1;
             $i=0;
-            
+
             foreach (blog_applicable_publish_states() as $state => $desc) {
                 if ($state == $data['publishstate']) {
                     $postaccess = $i;
                 }
                 $publishstates[$i++] = $state;
             }
-            
+
             if (time() < $blogassignment->timedue and ($postaccess > $blogassignment->var2 || $postaccess == -1)) {
                 $errors['publishto'] = get_string('canteditblogassignment', 'blog');
             }
-            
+
         } else {
             if (!$data['courseassoc'] && ($data['publishstate'] == 'course' || $data['publishstate'] == 'group') && !empty($CFG->useassoc)) {
                 return array('publishstate' => get_string('mustassociatecourse', 'blog'));
@@ -202,19 +216,19 @@ class blog_edit_form extends moodleform {
         //validate course association
         if (!empty($data['courseassoc'])) {
             $coursecontext = $DB->get_record('context', array('id' => $data['courseassoc'], 'contextlevel' => CONTEXT_COURSE));
-            
+
             if ($coursecontext)  {    //insure associated course has a valid context id
             //insure the user has access to this course
                 if (!has_capability('moodle/course:view', $coursecontext, $USER->id)) {
                     $errors['courseassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
                 } else {
                     $errors['courseassoc'] = get_string('invalidcontextid', 'blog');
-                } 
+                }
             }
 
             //validate mod associations
             if (!empty($data['modassoc'])) {
-                //insure mods are valid 
+                //insure mods are valid
                 foreach ($data['modassoc'] as $modid) {
                     $modcontext = $DB->get_record('context', array('id' => $modid, 'contextlevel' => CONTEXT_MODULE));
 
@@ -248,7 +262,7 @@ class blog_edit_form extends moodleform {
             }
             return true;
         }
-    } 
+    }
 
     function display() {
         $existing = $this->_customdata['existing'];
@@ -259,29 +273,10 @@ class blog_edit_form extends moodleform {
 ?>
 <script type="text/javascript">
 <?php
-        //add function to clear the list of context associations
 ?>
-function emptyAssocList() {
-  var modassoc = document.getElementById('id_modassoc');
-  while(modassoc.length > 0) {
-    modassoc.remove(0);
-  }
-}
 <?php
-        //add function for adding an element to the list of context associations
 
 ?>
-function addModAssoc(name, id) {
-  var modassoc = document.getElementById('id_modassoc');
-  newoption = document.createElement('option');
-  newoption.text = name;
-  newoption.value = id;
-  try {
-    modassoc.add(newoption, null);  //standard, broken in IE
-  } catch(ex) {
-  modassoc.add(newoption);
-  }
-}
 <?php
         //add function to add associations for a particular course
 ?>
