@@ -1,7 +1,39 @@
-<?php  //$Id$
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
+/**
+ * Core file storage class definition.
+ *
+ * @package    moodlecore
+ * @subpackage file-storage
+ * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require_once("$CFG->libdir/file/stored_file.php");
 
+/**
+ * File storage class used for low level access to stored files.
+ * Only owner of file area may use this class to access own files,
+ * for example only code in mod/assignment/* may access assignment
+ * attachments. When core needs to access files of modules it has
+ * to use file_browser class instead.
+ */
 class file_storage {
     private $filedir;
 
@@ -25,6 +57,7 @@ class file_storage {
 
     /**
      * Returns location of filedir (file pool)
+     * Do not use, this method is intended for stored_file instances.
      * @return string pathname
      */
     public function get_filedir() {
@@ -32,7 +65,9 @@ class file_storage {
     }
 
     /**
-     * Calculates sha1 hash of unique full path name information
+     * Calculates sha1 hash of unique full path name information,
+     * this hash is a unique file identifier. This improves performance
+     * and overcomes db index size limits.
      * @param int $contextid
      * @param string $filearea
      * @param int $itemid
@@ -77,7 +112,9 @@ class file_storage {
     }
 
     /**
-     * Fetch file using local file id
+     * Fetch file using local file id.
+     * Please do not rely on file ids, it is usually easier to use
+     * pathname hashes instead.
      * @param int $fileid
      * @return mixed stored_file instance if exists, false if not
      */
@@ -107,7 +144,7 @@ class file_storage {
     }
 
     /**
-     * Fetch file
+     * Fetch localy stored file.
      * @param int $contextid
      * @param string $filearea
      * @param int $itemid
@@ -270,7 +307,7 @@ class file_storage {
     }
 
     /**
-     * Recursively creates director
+     * Recursively creates directory
      * @param int $contextid
      * @param string $filearea
      * @param int $itemid
@@ -740,75 +777,6 @@ class file_storage {
 
         return $this->create_file_from_string($file_record, $content);
     }
-
-    /**
-     * Move one or more files from a given itemid location in the current user's draft files
-     * to a new filearea.  Note that you can't rename files using this function.
-     * @param int $itemid  - existing itemid in user draft_area with one or more files
-     * @param int $newcontextid  - the new contextid to move files to
-     * @param string $newfilearea  - the new filearea to move files to
-     * @param int $newitemid - the new itemid to use (this is ignored and automatically set to 0 when moving to a user's user_private area)
-     * @param string $newfilepath  - the new path to move all files to
-     * @param bool $overwrite  - overwrite files from the destination if they exist
-     * @param int $newuserid  - new userid if required
-     * @return mixed stored_file object or false if error; may throw exception if duplicate found
-     * @return array(contenthash, filesize, newfile)
-     */
-    public function move_draft_to_final($itemid, $newcontextid, $newfilearea, $newitemid,
-                                        $newfilepath='/', $overwrite=false) {
-
-        global $USER;
-
-    /// Get files from the draft area
-        if (!$usercontext = get_context_instance(CONTEXT_USER, $USER->id)) {
-            return false;
-        }
-        if (!$files = $this->get_area_files($usercontext->id, 'user_draft', $itemid, 'filename', false)) {
-            return false;
-        }
-
-        $newcontext = get_context_instance_by_id($newcontextid);
-        if (($newcontext->contextlevel == CONTEXT_USER) && ($newfilearea != 'user_draft')) {
-            $newitemid = 0;
-        }
-
-    /// Process each file in turn
-
-        $returnfiles = array();
-        foreach ($files as $file) {
-
-        /// Delete any existing files in destination if required
-            if ($oldfile = $this->get_file($newcontextid, $newfilearea, $newitemid,
-                                           $newfilepath, $file->get_filename())) {
-                if ($overwrite) {
-                    $oldfile->delete();
-                } else {
-                    $returnfiles[] = $oldfile;
-                    continue;   // Can't overwrite the existing file so skip it
-                }
-            }
-
-        /// Create the new file
-            $newrecord = new object();
-            $newrecord->contextid    = $newcontextid;
-            $newrecord->filearea     = $newfilearea;
-            $newrecord->itemid       = $newitemid;
-            $newrecord->filepath     = $newfilepath;
-            $newrecord->filename     = $file->get_filename();
-            $newrecord->timecreated  = $file->get_timecreated();
-            $newrecord->timemodified = $file->get_timemodified();
-            $newrecord->mimetype     = $file->get_mimetype();
-            $newrecord->userid       = $file->get_userid();
-
-            if ($newfile = $this->create_file_from_storedfile($newrecord, $file->get_id())) {
-                $file->delete();
-                $returnfiles[] = $newfile;
-            }
-        }
-
-        return $returnfiles;
-    }
-
 
     /**
      * Add file content to sha1 pool

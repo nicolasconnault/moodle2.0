@@ -1646,6 +1646,7 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
     /// 'until' date in an activity condition should have 1 second subtracted
     /// (to go from 0:00 on the following day to 23:59 on the previous one).
         $DB->execute('UPDATE {course_modules} SET availableuntil = availableuntil - 1 WHERE availableuntil <> 0');
+        require_once($CFG->dirroot . '/course/lib.php');
         rebuild_course_cache(0, true);
 
     /// Main savepoint reached
@@ -2165,8 +2166,22 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
     /// Main savepoint reached
         upgrade_main_savepoint($result, 2009051300);
     }
+
+    if ($result && $oldversion < 2009051700) {
+    /// migrate editor settings
+        if (empty($CFG->htmleditor)) {
+            set_config('texteditors', 'textarea');
+        } else {
+            set_config('texteditors', 'tinymce,textarea');
+        }
+
+        unset_config('htmleditor');
+        unset_config('defaulthtmleditor');
+
+    /// Main savepoint reached
+        upgrade_main_savepoint($result, 2009051700);
+    }
+
     return $result;
 }
 
-
-?>

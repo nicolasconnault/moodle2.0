@@ -116,7 +116,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element {
             $filesize    = $filesize ? display_size($filesize) : '';
             $mimetype = $file->get_mimetype();
             $icon    = mimeinfo_from_type('icon', $mimetype);
-            $viewurl = $browser->encodepath("$CFG->wwwroot/draftfile.php", "/$contextid/user_draft/$draftid".$filepath.$filename, false, false);
+            $viewurl = file_encode_url("$CFG->wwwroot/draftfile.php", "/$contextid/user_draft/$draftid".$filepath.$filename, false, false);
             $html .= '<li>';
             $html .= "<a href=\"$viewurl\"><img src=\"$CFG->pixpath/f/$icon\" class=\"icon\" />&nbsp;".s($filename)." ($filesize)</a> ";
             $html .= "<a href=\"###\" onclick='rm_$suffix(".$file->get_itemid().", \"".$filename."\", this)'><img src=\"$CFG->pixpath/t/delete.gif\" class=\"iconsmall\" /></a>";;
@@ -162,7 +162,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element {
         }
 
         $client_id = uniqid();
-        $repo_info = repository_get_client($context, $client_id, $this->filetypes, $this->returnvalue);
+        $repo_info = repository_get_client($context, $client_id, $this->_options['filetypes'], $this->_options['returnvalue']);
 
         $html = $this->_get_draftfiles($draftitemid, $client_id);
 
@@ -174,28 +174,28 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element {
             $str .= <<<EOD
 <script type="text/javascript">
 //<![CDATA[
-var elitem = null;
+var selected_file = null;
 var rm_cb = {
     success: function(o) {
         if(o.responseText && o.responseText == 200){
-            elitem.parentNode.removeChild(elitem);
+            selected_file.parentNode.removeChild(elitem);
         }
     }
 }
-function rm(id, name, context) {
+function rm_file(id, name, context) {
     if (confirm('$strdelete')) {
         var trans = YAHOO.util.Connect.asyncRequest('POST',
             '{$CFG->httpswwwroot}/repository/ws.php?action=delete&itemid='+id,
                 rm_cb,
                 'title='+name
                 );
-        elitem = context.parentNode;
+        selected_file = context.parentNode;
     }
 }
-function uf(obj) {
+function fp_callback(obj) {
     var list = document.getElementById('draftfiles-'+obj.client_id);
     var html = '<li><a href="'+obj['url']+'"><img src="'+obj['icon']+'" class="icon" /> '+obj['file']+'</a> ';
-    html += '<a href="###" onclick=\'rm('+obj['id']+', "'+obj['file']+'", this)\'><img src="{$CFG->pixpath}/t/delete.gif" class="iconsmall" /></a>';;
+    html += '<a href="###" onclick=\'rm_file('+obj['id']+', "'+obj['file']+'", this)\'><img src="{$CFG->pixpath}/t/delete.gif" class="iconsmall" /></a>';;
     html += '</li>';
     list.innerHTML += html;
 }
@@ -206,12 +206,14 @@ function callpicker(el_id, client_id, itemid) {
     picker.className = 'file-picker';
     document.body.appendChild(picker);
     var el=document.getElementById(el_id);
-    var obj = {};
-    obj.env = 'filemanager';
-    obj.itemid = itemid;
-    obj.target = el;
-    obj.callback = uf;
-    var fp = open_filepicker(client_id, obj);
+    var params = {};
+    params.env = 'filemanager';
+    params.maxbytes = $this->_options['maxbytes'];
+    params.maxfiles = $this->_options['maxfiles'];
+    params.itemid = itemid;
+    params.target = el;
+    params.callback = fp_callback;
+    var fp = open_filepicker(client_id, params);
 }
 //]]>
 </script>
