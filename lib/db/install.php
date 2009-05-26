@@ -51,7 +51,7 @@ function xmldb_main_install() {
         'template'              => 'default',
         'theme'                 => 'standardwhite',
         'filter_multilang_converted' => 1,
-        'siteidentifier'        => random_string(32).$_SERVER['HTTP_HOST'],
+        'siteidentifier'        => random_string(32).get_host_from_url($CFG->wwwroot),
         'backup_version'        => 2008111700,
         'backup_release'        => '2.0 dev',
         'blocks_version'        => 2007081300, // might be removed soon
@@ -152,13 +152,13 @@ function xmldb_main_install() {
     $admin->lastname     = get_string('user');
     $admin->username     = 'admin';
     $admin->password     = 'adminsetuppending';
-    $admin->email        = 'root@localhost';
+    $admin->email        = '';
     $admin->confirmed    = 1;
     $admin->mnethostid   = $CFG->mnet_localhost_id;
     $admin->lang         = $CFG->lang;
     $admin->maildisplay  = 1;
     $admin->timemodified = time();
-    $admin->lastip       = getremoteaddr(); // installation hijacking prevention
+    $admin->lastip       = CLI_SCRIPT ? '0.0.0.0' : getremoteaddr(); // installation hijacking prevention
     $admin->id = $DB->insert_record('user', $admin);
 
 
